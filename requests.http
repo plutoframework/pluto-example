@@ -1,0 +1,70 @@
+@base = http://127.0.0.1:8080
+@alice = demo_alice_mJ7Kq9vL2xR8
+@bob = demo_bob_tW4nC6yP1sF3
+@carol = demo_carol_hG8dA5uZ9eQ2
+@purchaseID = replace-with-created-id
+
+### Create a draft (201). Organization comes from verified membership, never body.
+POST {{base}}/api/purchases
+Authorization: Bearer {{alice}}
+X-Organization-ID: northstar
+Content-Type: application/json
+
+{"title":"Annual microscope calibration","amount_cents":48000}
+
+### Creator submits draft (200)
+POST {{base}}/api/purchases/{{purchaseID}}/submit
+Authorization: Bearer {{alice}}
+X-Organization-ID: northstar
+
+### Another approver decides (200)
+POST {{base}}/api/purchases/{{purchaseID}}/decision
+Authorization: Bearer {{bob}}
+X-Organization-ID: northstar
+Content-Type: application/json
+
+{"decision":"approved"}
+
+### Alice's requests only
+GET {{base}}/api/purchases
+Authorization: Bearer {{alice}}
+X-Organization-ID: northstar
+
+### Same actor, another authorized organization: Northstar request is hidden (404)
+GET {{base}}/api/purchases/{{purchaseID}}
+Authorization: Bearer {{alice}}
+X-Organization-ID: harbor
+
+### Client-visible flags (no-store); does not grant export permission
+GET {{base}}/api/features
+Authorization: Bearer {{bob}}
+X-Organization-ID: northstar
+
+### JSON export (403 unless startup feature is enabled)
+GET {{base}}/api/purchases/export
+Authorization: Bearer {{bob}}
+X-Organization-ID: northstar
+Accept-Encoding: gzip
+
+### Personal audit history
+GET {{base}}/api/audit
+Authorization: Bearer {{alice}}
+X-Organization-ID: northstar
+
+### Organization audit history
+GET {{base}}/api/audit
+Authorization: Bearer {{bob}}
+X-Organization-ID: northstar
+
+### Administrator lists organization members
+GET {{base}}/api/memberships
+Authorization: Bearer {{carol}}
+X-Organization-ID: northstar
+
+### Administrator changes another existing member's role
+PATCH {{base}}/api/memberships/alice
+Authorization: Bearer {{carol}}
+X-Organization-ID: northstar
+Content-Type: application/json
+
+{"role":"approver"}

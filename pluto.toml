@@ -1,0 +1,17 @@
+schema_version = 1
+
+[project]
+name = "pluto-example"
+module = "github.com/plutoframework/pluto-example"
+env_prefix = "PLUTO_EXAMPLE_"
+
+[capabilities]
+# Deliberate for this purchasing example; a future framework defaults to single.
+tenancy = "multi"
+
+[database]
+engine = "postgres"
+queries = "sqlc"
+
+[development]
+local_store = "memory"

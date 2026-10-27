@@ -1,0 +1,71 @@
+package app
+
+import (
+	"log/slog"
+	"net/http"
+
+	"github.com/plutoframework/pluto-example/internal/api"
+	"github.com/plutoframework/pluto-example/internal/auth"
+	"github.com/plutoframework/pluto-example/internal/config"
+	"github.com/plutoframework/pluto-example/internal/features"
+	audithandlers "github.com/plutoframework/pluto-example/internal/handlers/audit"
+	featurehandlers "github.com/plutoframework/pluto-example/internal/handlers/features"
+	"github.com/plutoframework/pluto-example/internal/handlers/memberships"
+	"github.com/plutoframework/pluto-example/internal/handlers/purchases"
+	"github.com/plutoframework/pluto-example/internal/pluto"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+type ApplicationOperations interface {
+	purchases.Operations
+	memberships.Operations
+	audithandlers.Operations
+}
+
+func Routes(
+	settings config.ServerConfig,
+	logger *slog.Logger,
+	authenticator auth.Authenticator,
+	evaluator features.Evaluator,
+	operations ApplicationOperations,
+) http.Handler {
+	router := chi.NewRouter()
+	router.Use(pluto.SecurityHeaders)
+	router.Use(pluto.Middleware(logger))
+
+	if settings.Gzip {
+		router.Use(middleware.Compress(5, "application/json"))
+	}
+
+	router.NotFound(func(writer http.ResponseWriter, request *http.Request) {
+		pluto.JSON(writer, http.StatusNotFound, api.ErrorResponse{
+			Error: api.Error{
+				Code:      "not_found",
+				Message:   "endpoint not found",
+				RequestID: writer.Header().Get("X-Request-ID"),
+			},
+		})
+	})
+
+	router.MethodNotAllowed(
+		func(writer http.ResponseWriter, request *http.Request) {
+			pluto.JSON(writer, http.StatusMethodNotAllowed, api.ErrorResponse{
+				Error: api.Error{
+					Code:      "method_not_allowed",
+					Message:   "method not allowed",
+					RequestID: writer.Header().Get("X-Request-ID"),
+				},
+			})
+		},
+	)
+
+	registrar := pluto.NewRegistrar(router, authenticator, evaluator)
+	purchases.Register(registrar, operations, settings.MaxBodyBytes)
+	memberships.Register(registrar, operations, settings.MaxBodyBytes)
+	featurehandlers.Register(registrar, evaluator)
+	audithandlers.Register(registrar, operations)
+
+	return router
+}

@@ -1,0 +1,771 @@
+{
+  "components": {
+    "responses": {
+      "Error": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        },
+        "description": "Error envelope; HTTP status identifies invalid input, auth, policy, conflict or internal failure."
+      }
+    },
+    "schemas": {
+      "AuditEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "actor_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "resource_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "actor_id",
+          "action",
+          "resource_id",
+          "outcome",
+          "occurred_at"
+        ],
+        "type": "object"
+      },
+      "AuditResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ChangeRoleRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
+      "Changed": {
+        "additionalProperties": false,
+        "properties": {
+          "updated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "updated"
+        ],
+        "type": "object"
+      },
+      "ChangedResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Changed"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "CreatePurchaseRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_cents": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "amount_cents"
+        ],
+        "type": "object"
+      },
+      "DecisionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "type": "object"
+      },
+      "Error": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "FeaturesResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Membership": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "display_name",
+          "role"
+        ],
+        "type": "object"
+      },
+      "MembershipsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Membership"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "Purchase": {
+        "additionalProperties": false,
+        "properties": {
+          "amount_cents": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "creator_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "organization_id",
+          "creator_id",
+          "title",
+          "amount_cents",
+          "status",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "PurchaseResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Purchase"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "PurchasesResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Purchase"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "demoBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Local ergonomics prototype; demo bearer auth only. Business validation remains in operations.",
+    "title": "Organization Purchasing Example",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/api/audit": {
+      "get": {
+        "description": "Members see their own actions; approvers and administrators see organization history.",
+        "operationId": "audit.list",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Read audit history",
+        "x-feature": "",
+        "x-permission": "audit:read"
+      }
+    },
+    "/api/features": {
+      "get": {
+        "description": "Return allowlisted effective flags for the authenticated actor and verified organization; flags do not grant permissions.",
+        "operationId": "features.get",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeaturesResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Read visible feature flags",
+        "x-feature": "",
+        "x-permission": ""
+      }
+    },
+    "/api/memberships": {
+      "get": {
+        "description": "Administrators list memberships in the verified organization.",
+        "operationId": "memberships.list",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembershipsResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "List organization members",
+        "x-feature": "",
+        "x-permission": "memberships:manage"
+      }
+    },
+    "/api/memberships/{actorID}": {
+      "patch": {
+        "description": "Administrators change another existing member's role. Self changes are forbidden.",
+        "operationId": "memberships.change_role",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "actorID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangedResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Change a member role",
+        "x-feature": "",
+        "x-permission": "memberships:manage"
+      }
+    },
+    "/api/purchases": {
+      "get": {
+        "description": "Members see their own requests; approvers and administrators see all requests in their organization.",
+        "operationId": "purchases.list",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchasesResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "List visible purchase requests",
+        "x-feature": "",
+        "x-permission": "purchases:read"
+      },
+      "post": {
+        "description": "Create a draft request in the verified active organization.",
+        "operationId": "purchases.create",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePurchaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Create purchase request",
+        "x-feature": "",
+        "x-permission": "purchases:create"
+      }
+    },
+    "/api/purchases/export": {
+      "get": {
+        "description": "Return a JSON export for an authorized approver when purchase_export is enabled.",
+        "operationId": "purchases.export",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchasesResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Export purchase requests",
+        "x-feature": "purchase_export",
+        "x-permission": "purchases:export"
+      }
+    },
+    "/api/purchases/{purchaseID}": {
+      "get": {
+        "description": "Read an owned request or an organization request visible to an approver.",
+        "operationId": "purchases.get",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "purchaseID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Read purchase request",
+        "x-feature": "",
+        "x-permission": "purchases:read"
+      }
+    },
+    "/api/purchases/{purchaseID}/decision": {
+      "post": {
+        "description": "An approver approves or rejects a submitted request created by someone else.",
+        "operationId": "purchases.decide",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "purchaseID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Decide purchase request",
+        "x-feature": "",
+        "x-permission": "purchases:decide"
+      }
+    },
+    "/api/purchases/{purchaseID}/submit": {
+      "post": {
+        "description": "The creator submits a draft for approval. Other transitions return conflict.",
+        "operationId": "purchases.submit",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "purchaseID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoBearer": []
+          }
+        ],
+        "summary": "Submit purchase request",
+        "x-feature": "",
+        "x-permission": "purchases:create"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080"
+    }
+  ]
+}

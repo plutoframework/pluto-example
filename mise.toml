@@ -1,0 +1,18 @@
+[tools]
+golangci-lint = "2.15.0"
+
+[tasks.fmt]
+description = "Apply Go formatting and whitespace fixes"
+run = "./scripts/fmt.sh"
+
+[tasks.lint]
+description = "Check Go formatting, spacing, and static analysis without edits"
+run = "./scripts/golangci.sh run ./..."
+
+[tasks.check]
+description = "Run lint, tests, vet, file limits, and generated contract checks"
+run = "./scripts/check.sh"
+
+[tasks.test]
+description = "Run the Go test suite"
+run = "go test ./..."
