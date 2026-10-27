@@ -26,8 +26,8 @@ MUTATIONS = [
     (
         "operation permission guard removed",
         "internal/operations/purchases.go",
-        "if !principal.Can(permission) {",
-        "if false && !principal.Can(permission) {",
+        "if !principal.Can(s.policy, permission) {",
+        "if false && !principal.Can(s.policy, permission) {",
         "./internal/operations",
         "TestDecisionPolicies",
     ),

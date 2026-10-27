@@ -9,17 +9,25 @@ import (
 
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
+
+	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type Service struct {
+	policy     *rbac.Policy
 	repository Repository
 	features   features.Evaluator
 	now        func() time.Time
 	newID      func() string
 }
 
-func New(repository Repository, evaluator features.Evaluator) *Service {
+func New(
+	repository Repository,
+	evaluator features.Evaluator,
+	policy *rbac.Policy,
+) *Service {
 	return &Service{
+		policy:     policy,
 		repository: repository,
 		features:   evaluator,
 		now:        time.Now,
@@ -36,12 +44,15 @@ func randomID() string {
 	return hex.EncodeToString(value[:])
 }
 
-func require(principal domain.Principal, permission domain.Permission) error {
+func (s *Service) require(
+	principal domain.Principal,
+	permission domain.Permission,
+) error {
 	if !principal.Verified() {
 		return domain.ErrUnauthenticated
 	}
 
-	if !principal.Can(permission) {
+	if !principal.Can(s.policy, permission) {
 		return domain.ErrForbidden
 	}
 
@@ -69,7 +80,7 @@ func (s *Service) Create(
 	title string,
 	cents int64,
 ) (domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseCreate); err != nil {
+	if err := s.require(principal, domain.PurchaseCreate); err != nil {
 		return domain.Purchase{}, err
 	}
 
@@ -104,7 +115,7 @@ func (s *Service) Get(
 	principal domain.Principal,
 	id string,
 ) (domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseRead); err != nil {
+	if err := s.require(principal, domain.PurchaseRead); err != nil {
 		return domain.Purchase{}, err
 	}
 
@@ -114,7 +125,7 @@ func (s *Service) Get(
 	}
 
 	if purchase.CreatorID != principal.ActorID &&
-		!principal.Can(domain.PurchaseDecide) {
+		!principal.Can(s.policy, domain.PurchaseDecide) {
 		return domain.Purchase{}, domain.ErrNotFound
 	}
 
@@ -125,7 +136,7 @@ func (s *Service) List(
 	ctx context.Context,
 	principal domain.Principal,
 ) ([]domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseRead); err != nil {
+	if err := s.require(principal, domain.PurchaseRead); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +148,7 @@ func (s *Service) List(
 	visible := make([]domain.Purchase, 0, len(purchases))
 	for _, purchase := range purchases {
 		if purchase.CreatorID == principal.ActorID ||
-			principal.Can(domain.PurchaseDecide) {
+			principal.Can(s.policy, domain.PurchaseDecide) {
 			visible = append(visible, purchase)
 		}
 	}
@@ -150,7 +161,7 @@ func (s *Service) Submit(
 	principal domain.Principal,
 	id string,
 ) (domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseCreate); err != nil {
+	if err := s.require(principal, domain.PurchaseCreate); err != nil {
 		return domain.Purchase{}, err
 	}
 
@@ -182,7 +193,7 @@ func (s *Service) Decide(
 	id string,
 	decision domain.Status,
 ) (domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseDecide); err != nil {
+	if err := s.require(principal, domain.PurchaseDecide); err != nil {
 		return domain.Purchase{}, err
 	}
 
@@ -237,7 +248,7 @@ func (s *Service) Export(
 	ctx context.Context,
 	principal domain.Principal,
 ) ([]domain.Purchase, error) {
-	if err := require(principal, domain.PurchaseExport); err != nil {
+	if err := s.require(principal, domain.PurchaseExport); err != nil {
 		return nil, err
 	}
 

@@ -67,8 +67,15 @@ func principal(actor string, role domain.Role) domain.Principal {
 	}
 }
 
-func testService(repository Repository) *Service {
-	service := New(repository, features.NewSnapshot(nil))
+func testService(t testing.TB, repository Repository) *Service {
+	t.Helper()
+
+	policy, err := domain.NewPolicy()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	service := New(repository, features.NewSnapshot(nil), policy)
 	service.now = func() time.Time { return time.Date(2026, 10, 26, 12, 0, 0, 0, time.UTC) }
 	service.newID = func() string { return "event-or-request-id" }
 
@@ -151,7 +158,7 @@ func TestDecisionPolicies(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			fake := &purchaseFake{current: fixture(test.status)}
 
-			result, err := testService(
+			result, err := testService(t,
 				fake,
 			).Decide(context.Background(), principal(test.actor, test.role), "request-1", test.decision)
 			if !errors.Is(err, test.want) {
@@ -223,7 +230,7 @@ func TestSubmitPolicies(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			fake := &purchaseFake{current: fixture(test.status)}
 
-			value, err := testService(
+			value, err := testService(t,
 				fake,
 			).Submit(context.Background(), principal(test.actor, domain.Member), "request-1")
 			if !errors.Is(err, test.want) {
@@ -244,7 +251,7 @@ func TestSubmitPolicies(t *testing.T) {
 
 func TestCrossTenantGetAndDecision(t *testing.T) {
 	fake := &purchaseFake{current: fixture(domain.Submitted)}
-	service := testService(fake)
+	service := testService(t, fake)
 
 	actor := domain.Principal{
 		ActorID:  "dana",
@@ -319,7 +326,7 @@ func TestCreateValidationAndAudit(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			fake := &purchaseFake{}
 
-			result, err := testService(
+			result, err := testService(t,
 				fake,
 			).Create(context.Background(), principal("alice", domain.Member), test.title, test.cents)
 			if !errors.Is(err, test.want) {
@@ -344,7 +351,7 @@ func TestConflictIsPropagated(t *testing.T) {
 		saveError: domain.ErrConflict,
 	}
 
-	_, err := testService(
+	_, err := testService(t,
 		fake,
 	).Submit(context.Background(), principal("alice", domain.Member), "request-1")
 	if !errors.Is(err, domain.ErrConflict) {
@@ -352,11 +359,25 @@ func TestConflictIsPropagated(t *testing.T) {
 	}
 }
 
+func TestMissingRBACPolicyDeniesBeforeRepositoryAccess(t *testing.T) {
+	service := New(&purchaseFake{}, features.NewSnapshot(nil), nil)
+
+	_, err := service.Create(
+		context.Background(),
+		principal("alice", domain.Administrator),
+		"Purchase request",
+		100,
+	)
+	if !errors.Is(err, domain.ErrForbidden) {
+		t.Fatalf("missing policy accepted an administrator: %v", err)
+	}
+}
+
 func TestExportPermissionAndFeatureAreIndependent(t *testing.T) {
 	// No repository methods are implemented: denied calls must stop before data access.
 	fake := &purchaseFake{}
 
-	service := testService(fake)
+	service := testService(t, fake)
 	if _, err := service.Export(
 		context.Background(),
 		principal("bob", domain.Approver),
@@ -405,7 +426,7 @@ func FuzzDecisionPolicy(f *testing.F) {
 			actor = "alice"
 		}
 
-		_, err := testService(
+		_, err := testService(t,
 			fake,
 		).Decide(context.Background(), principal(actor, domain.Role(role)), "request-1", domain.Status(decision))
 

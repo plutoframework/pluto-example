@@ -1,12 +1,10 @@
 package domain
 
+import rbac "github.com/plutoframework/pluto-rbac"
+
 // PermissionDefinition supports human-readable role assignment interfaces.
 // IDs are authorization contracts; names may evolve without changing policies.
-type PermissionDefinition struct {
-	ID          Permission
-	Name        string
-	Description string
-}
+type PermissionDefinition = rbac.Permission
 
 func Permissions() []PermissionDefinition {
 	return []PermissionDefinition{
@@ -48,12 +46,7 @@ func Permissions() []PermissionDefinition {
 	}
 }
 
-type RoleDefinition struct {
-	ID          Role
-	Name        string
-	Description string
-	Permissions []Permission
-}
+type RoleDefinition = rbac.Role
 
 func Roles() []RoleDefinition {
 	return []RoleDefinition{
@@ -61,23 +54,33 @@ func Roles() []RoleDefinition {
 			ID:          Member,
 			Name:        "Member",
 			Description: "Request purchases and follow your own activity.",
-			Permissions: append([]Permission(nil), rolePermissions[Member]...),
+			Permissions: []Permission{PurchaseCreate, PurchaseRead, AuditRead},
 		},
 		{
 			ID:          Approver,
+			Inherits:    []Role{Member},
 			Name:        "Approver",
 			Description: "Review requests from colleagues and inspect organization history.",
-			Permissions: append(
-				[]Permission(nil),
-				rolePermissions[Approver]...),
+			Permissions: []Permission{
+				PurchaseDecide,
+				PurchaseExport,
+				AuditReadAll,
+			},
 		},
 		{
 			ID:          Administrator,
+			Inherits:    []Role{Approver},
 			Name:        "Administrator",
 			Description: "Manage organization roles in addition to reviewing purchases.",
-			Permissions: append(
-				[]Permission(nil),
-				rolePermissions[Administrator]...),
+			Permissions: []Permission{MembershipManage},
 		},
 	}
+}
+
+// NewPolicy validates the application catalog once for constructor injection.
+func NewPolicy() (*rbac.Policy, error) {
+	return rbac.New(rbac.Definition{
+		Permissions: Permissions(),
+		Roles:       Roles(),
+	})
 }

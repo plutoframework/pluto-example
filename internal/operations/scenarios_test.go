@@ -16,7 +16,7 @@ import (
 func TestOrganizationWorkflow(t *testing.T) {
 	ctx := context.Background()
 	store := memory.New(auth.DemoMemberships())
-	service := operations.New(
+	service := newTestService(t,
 		store,
 		features.NewSnapshot(
 			map[features.Key]bool{features.PurchaseExport: true},
@@ -105,7 +105,7 @@ func TestOrganizationWorkflow(t *testing.T) {
 func TestMembershipPolicies(t *testing.T) {
 	ctx := context.Background()
 	store := memory.New(auth.DemoMemberships())
-	service := operations.New(store, features.NewSnapshot(nil))
+	service := newTestService(t, store, features.NewSnapshot(nil))
 	carol := domain.Principal{
 		ActorID:  "carol",
 		TenantID: "northstar",
@@ -189,7 +189,7 @@ func TestMembershipPolicies(t *testing.T) {
 func TestOptimisticWriteHasOneWinnerAndOneAudit(t *testing.T) {
 	ctx := context.Background()
 	store := memory.New(auth.DemoMemberships())
-	service := operations.New(store, features.NewSnapshot(nil))
+	service := newTestService(t, store, features.NewSnapshot(nil))
 	actor := domain.Principal{
 		ActorID:  "alice",
 		TenantID: "northstar",
@@ -243,4 +243,19 @@ func TestOptimisticWriteHasOneWinnerAndOneAudit(t *testing.T) {
 	if len(events) != 2 {
 		t.Fatalf("stale write appended an audit: %+v", events)
 	}
+}
+
+func newTestService(
+	t testing.TB,
+	repository operations.Repository,
+	evaluator features.Evaluator,
+) *operations.Service {
+	t.Helper()
+
+	policy, err := domain.NewPolicy()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return operations.New(repository, evaluator, policy)
 }

@@ -10,7 +10,7 @@ func (s *Service) Memberships(
 	ctx context.Context,
 	principal domain.Principal,
 ) ([]domain.Membership, error) {
-	if err := require(principal, domain.MembershipManage); err != nil {
+	if err := s.require(principal, domain.MembershipManage); err != nil {
 		return nil, err
 	}
 
@@ -23,11 +23,11 @@ func (s *Service) ChangeRole(
 	actorID string,
 	role domain.Role,
 ) error {
-	if err := require(principal, domain.MembershipManage); err != nil {
+	if err := s.require(principal, domain.MembershipManage); err != nil {
 		return err
 	}
 
-	if !domain.ValidRole(role) || actorID == "" {
+	if !domain.ValidRole(s.policy, role) || actorID == "" {
 		return domain.ErrInvalid
 	}
 
@@ -50,12 +50,12 @@ func (s *Service) Audit(
 	ctx context.Context,
 	principal domain.Principal,
 ) ([]domain.AuditEvent, error) {
-	if err := require(principal, domain.AuditRead); err != nil {
+	if err := s.require(principal, domain.AuditRead); err != nil {
 		return nil, err
 	}
 
 	actorFilter := principal.ActorID
-	if principal.Can(domain.AuditReadAll) {
+	if principal.Can(s.policy, domain.AuditReadAll) {
 		actorFilter = ""
 	}
 

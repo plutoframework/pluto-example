@@ -11,23 +11,27 @@ import (
 	"github.com/plutoframework/pluto-example/internal/paths"
 
 	"github.com/go-chi/chi/v5"
+	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type Registrar struct {
 	router        chi.Router
 	authenticator auth.Authenticator
 	features      features.Evaluator
+	policy        *rbac.Policy
 }
 
 func NewRegistrar(
 	router chi.Router,
 	authenticator auth.Authenticator,
 	evaluator features.Evaluator,
+	policy *rbac.Policy,
 ) *Registrar {
 	return &Registrar{
 		router:        router,
 		authenticator: authenticator,
 		features:      evaluator,
+		policy:        policy,
 	}
 }
 
@@ -68,6 +72,12 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 					return
 				}
 
+				if !principal.Verified() {
+					Error(writer, request, domain.ErrUnauthenticated)
+
+					return
+				}
+
 				logger = logger.With(
 					"actor_id",
 					principal.ActorID,
@@ -88,7 +98,7 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 					context.WithValue(ctx, loggerKey, logger),
 				)
 				if endpoint.Permission != "" &&
-					!principal.Can(endpoint.Permission) {
+					!principal.Can(r.policy, endpoint.Permission) {
 					Error(writer, request, domain.ErrForbidden)
 
 					return

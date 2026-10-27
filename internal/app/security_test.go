@@ -68,7 +68,7 @@ func TestRouterSecurityHeaders(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			response := call(
-				testRouter(&operationSpy{}, true, io.Discard),
+				testRouter(t, &operationSpy{}, true, io.Discard),
 				test.endpoint,
 				test.token,
 				"northstar",
@@ -89,7 +89,7 @@ func TestRouterSecurityHeadersOnPanic(t *testing.T) {
 	endpoint.Path = strings.ReplaceAll(endpoint.Path, "{purchaseID}", "test-id")
 
 	response := call(
-		testRouter(&operationSpy{}, true, io.Discard),
+		testRouter(t, &operationSpy{}, true, io.Discard),
 		endpoint,
 		aliceToken,
 		"northstar",

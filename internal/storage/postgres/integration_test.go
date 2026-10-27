@@ -106,7 +106,12 @@ func TestPostgresTenantIsolationAtomicAuditAndConcurrency(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	service := operations.New(store, features.NewSnapshot(nil))
+	policy, err := domain.NewPolicy()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	service := operations.New(store, features.NewSnapshot(nil), policy)
 	alice := domain.Principal{
 		ActorID:  "alice",
 		TenantID: "northstar",

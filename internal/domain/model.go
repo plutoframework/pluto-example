@@ -6,9 +6,11 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	rbac "github.com/plutoframework/pluto-rbac"
 )
 
-type Permission string
+type Permission = rbac.PermissionID
 
 const (
 	PurchaseCreate   Permission = "purchases:create"
@@ -20,7 +22,7 @@ const (
 	AuditReadAll     Permission = "audit:read_all"
 )
 
-type Role string
+type Role = rbac.RoleID
 
 const (
 	Member        Role = "member"
@@ -28,33 +30,11 @@ const (
 	Administrator Role = "administrator"
 )
 
-// Role grants are distinct from endpoint names and resource policies.
-var rolePermissions = map[Role][]Permission{
-	Member: {
-		PurchaseCreate,
-		PurchaseRead,
-		AuditRead,
-	},
-	Approver: {
-		PurchaseCreate,
-		PurchaseRead,
-		PurchaseDecide,
-		PurchaseExport,
-		AuditRead,
-		AuditReadAll,
-	},
-	Administrator: {
-		PurchaseCreate,
-		PurchaseRead,
-		PurchaseDecide,
-		PurchaseExport,
-		MembershipManage,
-		AuditRead,
-		AuditReadAll,
-	},
+// ValidRole checks the same compiled catalog used by authorization.
+func ValidRole(policy *rbac.Policy, role Role) bool {
+	_, err := policy.EffectivePermissions(role)
+	return err == nil
 }
-
-func ValidRole(role Role) bool { _, ok := rolePermissions[role]; return ok }
 
 type Principal struct {
 	ActorID  string
@@ -62,17 +42,13 @@ type Principal struct {
 	Role     Role
 }
 
-func (p Principal) Can(permission Permission) bool {
-	for _, grant := range rolePermissions[p.Role] {
-		if grant == permission {
-			return true
-		}
-	}
-
-	return false
+func (p Principal) Can(policy *rbac.Policy, permission Permission) bool {
+	return p.Verified() && policy.Allows([]rbac.RoleID{p.Role}, permission)
 }
 
-func (p Principal) Verified() bool { return p.ActorID != "" && p.TenantID != "" && ValidRole(p.Role) }
+func (p Principal) Verified() bool {
+	return p.ActorID != "" && p.TenantID != "" && p.Role != ""
+}
 
 type Status string
 

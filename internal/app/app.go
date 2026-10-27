@@ -8,6 +8,7 @@ import (
 
 	"github.com/plutoframework/pluto-example/internal/auth"
 	"github.com/plutoframework/pluto-example/internal/config"
+	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
 	"github.com/plutoframework/pluto-example/internal/operations"
 	"github.com/plutoframework/pluto-example/internal/storage/memory"
@@ -25,6 +26,11 @@ func New(
 	logger *slog.Logger,
 ) (*App, error) {
 	if err := settings.Validate(); err != nil {
+		return nil, err
+	}
+
+	policy, err := domain.NewPolicy()
+	if err != nil {
 		return nil, err
 	}
 
@@ -46,7 +52,7 @@ func New(
 	}
 
 	evaluator := features.NewSnapshot(settings.Features.Overrides())
-	service := operations.New(repository, evaluator)
+	service := operations.New(repository, evaluator, policy)
 	authenticator := auth.NewDemo(repository)
 	handler := Routes(
 		settings.Server,
@@ -54,6 +60,7 @@ func New(
 		authenticator,
 		evaluator,
 		service,
+		policy,
 	)
 
 	return &App{

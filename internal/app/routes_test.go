@@ -76,10 +76,18 @@ const (
 )
 
 func testRouter(
+	t testing.TB,
 	spy *operationSpy,
 	enabled bool,
 	logWriter io.Writer,
 ) http.Handler {
+	t.Helper()
+
+	policy, err := domain.NewPolicy()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	settings := config.ServerConfig{
 		MaxBodyBytes: 512,
 		Gzip:         true,
@@ -95,6 +103,7 @@ func testRouter(
 			map[features.Key]bool{features.PurchaseExport: enabled},
 		),
 		spy,
+		policy,
 	)
 }
 
@@ -177,7 +186,7 @@ func TestDeniedRequestsNeverInvokeOperations(t *testing.T) {
 			spy := &operationSpy{}
 
 			response := call(
-				testRouter(spy, test.enabled, io.Discard),
+				testRouter(t, spy, test.enabled, io.Discard),
 				paths.ExportPurchases,
 				test.token,
 				test.tenant,
@@ -212,7 +221,7 @@ func TestAdapterExtractsVerifiedPrincipal(t *testing.T) {
 	spy := &operationSpy{}
 
 	response := call(
-		testRouter(spy, true, io.Discard),
+		testRouter(t, spy, true, io.Discard),
 		paths.CreatePurchase,
 		aliceToken,
 		"harbor",
@@ -287,7 +296,7 @@ func TestInvalidBodiesNeverInvokeOperations(t *testing.T) {
 			spy := &operationSpy{}
 
 			response := call(
-				testRouter(spy, false, io.Discard),
+				testRouter(t, spy, false, io.Discard),
 				paths.CreatePurchase,
 				aliceToken,
 				"northstar",
@@ -311,7 +320,7 @@ func TestVisibleFlagsUseSameEvaluatorAndRequireAuth(t *testing.T) {
 		true,
 	} {
 		spy := &operationSpy{}
-		handler := testRouter(spy, enabled, io.Discard)
+		handler := testRouter(t, spy, enabled, io.Discard)
 		response := call(handler, paths.GetFeatures, bobToken, "northstar", "")
 
 		var body api.FeaturesResponse
@@ -342,7 +351,7 @@ func TestVisibleFlagsUseSameEvaluatorAndRequireAuth(t *testing.T) {
 
 	spy := &operationSpy{}
 	if response := call(
-		testRouter(spy, true, io.Discard),
+		testRouter(t, spy, true, io.Discard),
 		paths.GetFeatures,
 		"",
 		"northstar",
@@ -357,7 +366,7 @@ func TestCompletionLogsAreEnrichedAndDoNotContainCredentials(t *testing.T) {
 
 	spy := &operationSpy{}
 	response := call(
-		testRouter(spy, false, &logs),
+		testRouter(t, spy, false, &logs),
 		paths.ExportPurchases,
 		bobToken,
 		"northstar",
@@ -386,7 +395,7 @@ func TestCompletionLogsAreEnrichedAndDoNotContainCredentials(t *testing.T) {
 }
 
 func TestRoutingErrorsHaveJSONEnvelopes(t *testing.T) {
-	handler := testRouter(&operationSpy{}, false, io.Discard)
+	handler := testRouter(t, &operationSpy{}, false, io.Discard)
 
 	for _, request := range []*http.Request{
 		httptest.NewRequest("GET", "/missing", nil),
@@ -411,7 +420,7 @@ func TestRoutingErrorsHaveJSONEnvelopes(t *testing.T) {
 }
 
 func TestNegotiatedGzip(t *testing.T) {
-	handler := testRouter(&operationSpy{}, false, io.Discard)
+	handler := testRouter(t, &operationSpy{}, false, io.Discard)
 	request := httptest.NewRequest("GET", paths.ListPurchases.Path, nil)
 	request.Header.Set("Authorization", "Bearer "+aliceToken)
 	request.Header.Set("X-Organization-ID", "northstar")

@@ -62,6 +62,29 @@ The security policy matches the CLI generator: `nosniff`, `X-Frame-Options: DENY
 
 Audit events are an explicit business API containing event identity, actor, organization, action, resource, outcome, and time. Only successful writes are persisted in this prototype. Denied requests appear in diagnostic logs, not durable audit records. PostgreSQL records business mutation and audit atomically. There is no external SIEM connection or durable delivery; an outbox could be added at the transaction boundary later.
 
+## Authorization
+
+The example imports the published `github.com/plutoframework/pluto-rbac` module,
+pinned to `v0.0.0-20261027065629-25c44e7fe21b` in go.mod/go.sum. There is no local
+replacement or dependency on a sibling checkout. [The application catalog](internal/domain/catalog.go)
+uses the library's permission/role types: members have base capabilities,
+approvers inherit members, and administrators inherit approvers.
+`domain.NewPolicy()` compiles and validates the catalog once at startup.
+The composition root injects the same immutable policy into route registration
+and business operations; `Principal.Can(policy, permission)` delegates grant
+evaluation to the package rather than a second local role/permission algorithm.
+Unknown roles/permissions and missing policies deny capability checks.
+Catalog roles contain direct grants and inheritance; use the library's
+`EffectivePermissions` to enumerate inherited capabilities for an assignment UI.
+
+The demo authenticator still resolves membership for the exact actor/organization
+pair and supplies the trusted role in that principal. The application consumes
+that request-start snapshot rather than performing another membership lookup for
+every permission check. Tenant-scoped SQL, ownership checks, no self-approval,
+feature gates and transactional audits remain application responsibilities.
+Concurrent revocation can still race an already authorized operation; this
+integration does not imply transactional authorization/revocation guarantees.
+
 ## Configuration
 
 [.env.example](.env.example) documents every supported environment override. The application **does not load `.env` automatically**. For a local shell, explicitly export its values (for example `set -a; . ./.env.example; set +a`) or use the inline commands above. No secret belongs in `pluto.toml`.

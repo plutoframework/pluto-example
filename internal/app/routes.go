@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type ApplicationOperations interface {
@@ -30,6 +31,7 @@ func Routes(
 	authenticator auth.Authenticator,
 	evaluator features.Evaluator,
 	operations ApplicationOperations,
+	policy *rbac.Policy,
 ) http.Handler {
 	router := chi.NewRouter()
 	router.Use(pluto.SecurityHeaders)
@@ -61,7 +63,7 @@ func Routes(
 		},
 	)
 
-	registrar := pluto.NewRegistrar(router, authenticator, evaluator)
+	registrar := pluto.NewRegistrar(router, authenticator, evaluator, policy)
 	purchases.Register(registrar, operations, settings.MaxBodyBytes)
 	memberships.Register(registrar, operations, settings.MaxBodyBytes)
 	featurehandlers.Register(registrar, evaluator)
