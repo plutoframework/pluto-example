@@ -5,3 +5,7 @@ coverage/
 playwright-report/
 test-results/
 src/api/generated/
+
+src/generated/theme.css
+src/generated/theme-overrides.css
+public/pluto-theme.js

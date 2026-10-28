@@ -1,7 +1,3 @@
-@theme inline {
-  --font-sans: Manrope, sans-serif;
-}
-
 /* HeroUI owns the dark palette, radii, typography and control appearance.
    These rules only arrange application content and constrain its scrollports. */
 .textfield,

@@ -14,10 +14,14 @@
     "api:check": "node scripts/generate-api.mjs --check",
     "fmt": "prettier --write .",
     "lint": "eslint . && prettier --check . && node scripts/architecture.mjs",
-    "test": "vitest run && node --test scripts/architecture.test.mjs",
+    "test": "vitest run && node --test scripts/architecture.test.mjs scripts/theme.test.mjs",
     "test:e2e": "playwright test",
     "capture": "node scripts/capture.mjs --allow-fixture-recovery",
-    "check": "npm run api:check && npm run lint && tsc --noEmit && npm test && npm run build"
+    "check": "npm run theme:check && npm run api:check && npm run lint && tsc --noEmit && npm test && npm run build",
+    "theme:generate": "node scripts/theme.mjs",
+    "theme:check": "node scripts/theme.mjs --check",
+    "predev": "npm run theme:generate",
+    "prebuild": "npm run theme:generate"
   },
   "dependencies": {
     "@heroui/react": "3.2.6",
@@ -45,6 +49,7 @@
     "jsdom": "30.1.3",
     "openapi-typescript": "7.13.0",
     "prettier": "3.9.10",
+    "smol-toml": "1.9.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
     "vite": "8.3.5",

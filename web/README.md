@@ -90,7 +90,8 @@ Vite plugin 4.3.3, with the resolved graph in package-lock.json.
 HeroUI provides buttons, text/search fields, selects/listboxes, purchase/member
 tables, status chips, avatars, cards, alerts, spinners and the create-request modal.
 HeroUI supplies its default dark palette, rounded controls and blue accent.
-The dark theme is selected on the document root, including portalled overlays.
+The theme mode and font are selected in the parent pluto.toml and applied to the
+document root, including portalled overlays.
 Application CSS handles layout and spacing; src/app/heroui.css does not reskin
 HeroUI controls. Components import HeroUI directly; feature data/policy logic
 stays in its existing modules. There is no second generic Pluto control API.
@@ -197,3 +198,31 @@ non-credential screenshots in evidence/. It also verifies dialog focus restorati
 and viewport bounds. Like the browser walkthrough, it revokes old fixture sessions.
 `npm run capture -- --open` leaves a nonpersistent Chrome review window open with
 a synthetic administrator session; closing it releases that browser context.
+
+## Central theme configuration
+
+The parent pluto.toml now owns `[frontend.theme]`: mode, optional radius,
+font_family and the project-relative overrides CSS path. Optional light/dark
+subtables set semantic colors using #RRGGBB or #RRGGBBAA. The example keeps
+mode="dark" and HeroUI's default colors; commented examples show where to start.
+Font selection does not fetch assets; the existing Manrope font is self-hosted.
+
+Run `npm run theme:generate`, or let Vite regenerate on start, build and TOML
+changes. `npm run theme:check` detects stale outputs without writes and is included
+in npm check. The compiler is the same implementation scaffolded by Pluto CLI;
+it parses TOML at build time with the pinned smol-toml dev dependency. The example
+still has its schema-1 prototype manifest and is not silently migrated by CLI.
+Use the npm commands in this example; CLI theme commands support CLI manifests.
+
+Generated files are src/generated/theme.css, src/generated/theme-overrides.css
+and public/pluto-theme.js. Never hand-edit these. Library defaults precede the
+generated tokens; web/src/styles/overrides.css loads last and belongs to the
+application. The compiler never rewrites that file. Set a new overrides path only
+after creating the file under web/src, outside generated directories. Unsafe
+paths, symlinks, unknown tokens and malformed CSS values fail before writes.
+Advanced selectors/effects/OKLCH colors remain available in authored CSS.
+
+The external bootstrap selects light/dark before React mounts and follows OS
+changes for mode="system". It needs no local storage, inline script or weaker
+CSP. Browser assets receive only the theme mode and configured CSS tokens, never
+the full project manifest or backend runtime settings.

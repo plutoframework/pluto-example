@@ -4,7 +4,7 @@ Read README.md and the root API contracts first. This is a reviewable full-stack
 example, not a frontend generator or a general component library.
 
 - HeroUI v3 is the saved component library. Import its controls directly, use its compound components and theme CSS variables, and preserve the pinned profile. Do not restore parallel handwritten button, dialog or select implementations.
-- Preserve HeroUI's default dark appearance and blue accent. Application CSS arranges content; do not reskin library controls with the earlier paper/navy/copper palette. Use secondary field variants inside cards and modals for visible contrast.
+- Preserve HeroUI's defaults unless pluto.toml explicitly overrides them. Application CSS arranges content; do not reskin library controls with the earlier paper/navy/copper palette. Use secondary field variants inside cards and modals for visible contrast.
 - React + TypeScript + Vite; TanStack Router owns URL state and TanStack Query owns server state. Keep transient visual state local and form state inside forms. Do not copy query records into global stores or persist auth/tenant state in browser storage.
 - app/ composes the router/providers/shell. features/<name>/ owns pages, components, forms, queries, mutations and types. shared/ui receives props/callbacks. Cross-feature imports must go through that feature's public.ts; shared cannot depend on features.
 - Pages assemble screens and call feature hooks. Components/forms never import the HTTP client or generated bindings. Only feature queries.ts/mutations.ts import api/client.ts. Never fetch data in component effects or add another HTTP library.
@@ -16,3 +16,8 @@ example, not a frontend generator or a general component library.
 - Use semantic HeroUI controls, labels, dialog focus behavior, visible focus rings and reduced-motion CSS. Handle loading, empty, error and success states. Financial inputs use integer cents with exact decimal parsing; Go remains authoritative.
 - Run npm run fmt, npm run check and the documented real API/browser walkthrough. Pure backend package checks target ./cmd/... ./internal/...; do not execute Go files bundled by npm dependencies.
 - Native browser integration uses Playwright against loopback services only. The product-native preview cannot currently accept this self-signed local HTTPS certificate; use the documented isolated browser test context with ignoreHTTPSErrors enabled for this loopback example only. Keep traces/video/storage-state off for credential tests and do not print passwords, cookies or challenges.
+
+Theme configuration lives in the parent pluto.toml. Never hand-edit
+src/generated/theme*.css or public/pluto-theme.js. Custom selectors belong in
+src/styles/overrides.css; regenerate with npm run theme:generate and verify with
+npm run theme:check. Do not import the TOML document into browser code.

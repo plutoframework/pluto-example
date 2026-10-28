@@ -8,3 +8,6 @@
 @import "./responsive.css";
 
 @import "./heroui.css";
+
+@import "../generated/theme.css";
+@import "../generated/theme-overrides.css";

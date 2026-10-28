@@ -25,3 +25,16 @@ framework = "react"
 directory = "web"
 router = "tanstack"
 package_manager = "npm"
+
+[frontend.theme]
+mode = "dark"
+font_family = "Manrope, sans-serif"
+overrides = "web/src/styles/overrides.css"
+
+# Empty token tables preserve HeroUI defaults. Optional examples:
+# [frontend.theme.light]
+# accent = "#006FEE"
+# accent_foreground = "#FFFFFF"
+# [frontend.theme.dark]
+# accent = "#338EF7"
+# background = "#09090B"
