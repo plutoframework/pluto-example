@@ -16,8 +16,10 @@ docker compose -p pluto-example up -d --wait
 set -a; . ./.env.example; set +a
 PLUTO_EXAMPLE_FEATURE_PURCHASE_EXPORT=true go run ./cmd/api
 # Another terminal, with the same exported .env.example settings:
+go run ./cmd/worker
+# A third terminal, with the same environment:
 ./scripts/demo.sh
-# Stop the API, then discard both database and Mailpit:
+# Stop the API and worker, then discard database and Mailpit:
 docker compose -p pluto-example down
 ```
 
@@ -106,7 +108,7 @@ The server has read/header/write/idle timeouts, a 16 KiB JSON request limit, a 1
 
 The security policy matches the CLI generator: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `no-store`, a restrictive JSON-API CSP (`default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`), disabled camera/microphone/geolocation permissions, and Helmet-style cross-origin and legacy browser policies. It runs before authentication/recovery so success, denied, malformed, missing-route, method-error and recovered-panic responses retain the headers. [Router tests](internal/app/security_test.go) check that wiring. The authored middleware is the customization point for HTML/docs or embeddable resources. CSP applies to the API document, not a separately hosted UI; CORP does not configure CORS. Set HSTS at the HTTPS terminator after choosing a domain policy; the local HTTP example neither trusts forwarded protocol headers nor enables HSTS/subdomains/preload automatically. Headers do not replace authorization, validation or CSRF defenses for cookie authentication.
 
-Audit events are an explicit business API containing event identity, actor, organization, action, resource, outcome, and time. Only successful writes are persisted in this prototype. Denied requests appear in diagnostic logs, not durable audit records. PostgreSQL records business mutation and audit atomically. There is no external SIEM connection or durable delivery; an outbox could be added at the transaction boundary later.
+Audit events are an explicit business API containing event identity, actor, organization, action, resource, outcome, and time. Only successful writes are persisted in this prototype. Denied requests appear in diagnostic logs, not durable audit records. PostgreSQL records business mutation and audit atomically. Each successful API business mutation also enqueues a tenant-scoped audit-delivery job in that same transaction. The separate worker archives the canonical event in an idempotent local demonstration sink; no external SIEM connection is configured.
 
 ## Authorization
 
@@ -197,11 +199,13 @@ Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON d
 Regenerate the two committed artifacts reproducibly:
 
 ```sh
-go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.29.0 generate
+go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
 go run ./cmd/openapi
 ```
 
-sqlc is a pinned development generator, not a runtime dependency. OpenAPI derives route metadata and concrete JSON model structure from shared Go definitions, with reusable schema references. It does not infer business policies, amount/title constraints, enums, or every runtime validation rule. Errors use a shared default response; status mapping is documented above. It is intentionally a sample generator, not a general schema engine.
+sqlc is a pinned development generator, not a runtime dependency. sqlc 1.31.1
+uses a Go 1.26+ toolchain for generation (Go can download it automatically); the
+application continues to target Go 1.25.5+. OpenAPI derives route metadata and concrete JSON model structure from shared Go definitions, with reusable schema references. It does not infer business policies, amount/title constraints, enums, or every runtime validation rule. Errors use a shared default response; status mapping is documented above. It is intentionally a sample generator, not a general schema engine.
 
 The architecture test walks source imports transitively, rejects handler access to database adapters/drivers and business access to HTTP/storage, checks paths do not reach handlers, and enforces a 1,000-line Go source limit including generated code. [check.sh](scripts/check.sh) runs the non-mutating golangci-lint checks, checks every non-Git project file's line count, runs tests/vet, and verifies OpenAPI freshness. It can be invoked unchanged by a future Git hook or CI job; this example does not install a hook or remote CI workflow. These checks enforce dependency boundaries; they do not semantically prove that handlers contain no business logic.
 
@@ -253,3 +257,54 @@ and `postgres.New(tx).Complete` in the SAME transaction as typed app queries; th
 [core transaction walkthrough](https://github.com/plutoframework/pluto-core/blob/main/docs/transactions.md)
 and real PostgreSQL rollback/commit tests demonstrate that pattern. Arbitrary
 business transactions and external effects are never automatically retried.
+
+## Durable background delivery
+
+The example imports published Pluto Jobs v0.1.1 and its Postgres adapter v0.1.0.
+Apply `db/migrations/005_jobs.sql` to existing databases before starting the updated
+API or worker. Fresh Compose databases receive it before development fixtures;
+existing databases are never migrated implicitly. Auth schema 004 remains separate.
+
+Purchase creation/transitions and role changes write domain state, business audit
+and an `audit.deliver` outbox request in ONE pgx transaction. If any insert fails,
+all three roll back. The request contains only an event ID and explicit verified
+tenant metadata, never a raw credential/challenge or audit body. HTTP handlers
+remain thin; enqueue happens in the repository transaction, not after HTTP success.
+The in-memory business repository is for isolated unit tests and has no durable
+outbox; the runnable app requires PostgreSQL.
+
+`go run ./cmd/worker` explicitly registers the audit handler using the published
+worker implementation. Nested `config.Config.Jobs` holds its bounded defaults.
+There are no worker goroutines in the API. The handler loads the canonical audit
+with BOTH tenant and event predicates and copies it into `audit_archive`. A unique
+(tenant_id,event_id) key makes redelivery after acknowledgement loss safe. This
+archive is a real, local example effect, not a claim of external SIEM/email/webhook
+delivery. Replace the narrow AuditSink implementation to integrate a real provider.
+Trusted development membership fixtures do not produce external delivery jobs.
+
+Inspect delivery without exposing payloads:
+
+```sql
+SELECT state, attempts, diagnostic, count(*) FROM pluto_jobs
+GROUP BY state, attempts, diagnostic;
+SELECT tenant_id, event_id, delivered_at FROM audit_archive
+ORDER BY delivered_at;
+```
+
+Delivery is at least once with finite retries and no heartbeat. Use stable job.ID
+or event IDs for provider idempotency, honor context deadlines and cooperative
+shutdown, and deploy compatible handlers before producers. Applications own
+retention, monitoring, failed-job inspection and reconciliation. The worker logs
+no payloads/provider errors. Auth notification delivery remains synchronous; raw
+challenge tokens are deliberately never put in this outbox.
+
+`./scripts/postgres-check.sh` tests real business/audit/outbox rollback, uncommitted
+visibility, worker retries, tenant isolation and duplicate-safe archival, along
+with the credential and pagination scenarios. It creates/removes its own database.
+
+Jobs integration validation passed: repository check/lint/vet/OpenAPI freshness,
+race tests, real disposable PostgreSQL scenarios above, nine killed mutations
+(no survivors/invalid builds/timeouts), and a three-second handler fuzz sample
+with 145,905 executions. A live API + separate worker + loopback Mailpit walkthrough
+produced five jobs, archived all five, and left zero unsettled jobs. Disposable
+services were removed. These are integration checks, not an independent audit.

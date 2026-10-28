@@ -8,6 +8,14 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 MUTATIONS = [
     (
+        "job tenant guard removed",
+        "internal/background/audit.go",
+        "job.TenantID == nil",
+        "false",
+        "./internal/background",
+        "TestAuditHandlerRequiresScopeAndPayload",
+    ),
+    (
         "development socket peer guard removed",
         "internal/auth/ingress.go",
         "if err != nil || peer == nil || !peer.IsLoopback() {",

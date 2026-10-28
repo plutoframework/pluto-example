@@ -12,11 +12,13 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	jobpostgres "github.com/plutoframework/pluto-jobs/stores/postgres"
 )
 
 type Store struct {
 	pool    *pgxpool.Pool
 	queries *db.Queries
+	outbox  *jobpostgres.Store
 }
 
 func Open(ctx context.Context, url string) (*Store, error) {
@@ -31,9 +33,17 @@ func Open(ctx context.Context, url string) (*Store, error) {
 		return nil, err
 	}
 
+	outbox, err := jobpostgres.New(pool)
+	if err != nil {
+		pool.Close()
+
+		return nil, err
+	}
+
 	return &Store{
 		pool:    pool,
 		queries: db.New(pool),
+		outbox:  outbox,
 	}, nil
 }
 

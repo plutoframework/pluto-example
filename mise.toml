@@ -16,3 +16,7 @@ run = "./scripts/check.sh"
 [tasks.test]
 description = "Run the Go test suite"
 run = "go test ./..."
+
+[tasks.worker]
+description = "Run the audit delivery worker using the exported app environment"
+run = "go run ./cmd/worker"

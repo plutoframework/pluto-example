@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	jobs "github.com/plutoframework/pluto-jobs"
 )
 
 const Prefix = "PLUTO_EXAMPLE_"
@@ -19,6 +21,7 @@ type Config struct {
 	Features FeaturesConfig
 	DemoAuth bool
 	Auth     AuthConfig
+	Jobs     jobs.Config
 }
 
 func Load() (Config, error) { return LoadFrom(os.LookupEnv) }
@@ -27,6 +30,7 @@ type Lookup func(string) (string, bool)
 
 func LoadFrom(lookup Lookup) (Config, error) {
 	config := Config{
+		Jobs: jobs.DefaultConfig(),
 		Server: ServerConfig{
 			Address:      "127.0.0.1:8080",
 			ReadTimeout:  5 * time.Second,

@@ -84,6 +84,10 @@ func (s *Store) SavePurchase(
 		return translate(err)
 	}
 
+	if err := s.enqueueAudit(ctx, transaction, event); err != nil {
+		return translate(err)
+	}
+
 	return translate(transaction.Commit(ctx))
 }
 
@@ -119,6 +123,10 @@ func (s *Store) ChangeRole(
 	}
 
 	if err := appendAudit(ctx, queries, event); err != nil {
+		return translate(err)
+	}
+
+	if err := s.enqueueAudit(ctx, transaction, event); err != nil {
 		return translate(err)
 	}
 
