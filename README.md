@@ -194,7 +194,7 @@ python3 scripts/mutation-smoke.py
 go run ./cmd/openapi -check
 ```
 
-Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes eight meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all eight are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
+Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes ten meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all ten are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
 
 Regenerate the two committed artifacts reproducibly:
 
@@ -308,3 +308,41 @@ race tests, real disposable PostgreSQL scenarios above, nine killed mutations
 with 145,905 executions. A live API + separate worker + loopback Mailpit walkthrough
 produced five jobs, archived all five, and left zero unsettled jobs. Disposable
 services were removed. These are integration checks, not an independent audit.
+
+
+## Data cache
+
+The example uses published Pluto Core v0.2.1 and its optional Valkey adapter
+v0.1.0. `GET /api/organization` demonstrates cache-aside reads of organization
+display metadata for one minute. Live sessions, membership and `organization:read`
+permissions are checked on every request, including hits. Enrollment grants none.
+The operation also validates the cached organization ID against the verified tenant.
+
+The default `PLUTO_EXAMPLE_CACHE_BACKEND=memory` uses a bounded, expiring LRU.
+Set it to `none` to bypass storage, or run the optional development service:
+
+```sh
+docker compose --profile cache up -d valkey
+export PLUTO_EXAMPLE_CACHE_BACKEND=valkey
+export PLUTO_EXAMPLE_CACHE_URL='redis://:local_only@127.0.0.1:6379/0'
+```
+
+These are synthetic local credentials. Supply real credentials through your secret
+manager. External connections use `rediss://` with verified TLS; plaintext beyond
+loopback requires explicit `PLUTO_EXAMPLE_CACHE_ALLOW_INSECURE=true`. A process
+inside Docker must use `valkey:6379` and explicitly opt into local plaintext.
+Set `PLUTO_EXAMPLE_CACHE_ENVIRONMENT` separately for each deployment. Scoped hashed
+keys include the application, environment, namespace, schema version and tenant.
+
+The cache is an optimization: backend failures fall back to Postgres, and identity,
+roles, auth challenges, idempotency and audit delivery never depend on it. Display
+metadata can remain stale until expiry. A future organization write must invalidate
+the same key after commit; deletion alone does not eliminate concurrent refill
+races. There is no organization update API or transactional cache guarantee here.
+
+The application owns cache construction and cleanup in `internal/caching` and
+`internal/app`; operations consume the shared Core interface. Unit tests prove
+hits, tenant/environment isolation, fallback, invalidation and live permissions.
+`./scripts/postgres-check.sh` also starts authenticated Valkey and verifies real HTTP
+membership revocation after a warm cache. Core separately tests the same adapter
+against Redis and Valkey. No additional SQL migration is needed for this cache.

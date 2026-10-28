@@ -22,6 +22,7 @@ type Config struct {
 	DemoAuth bool
 	Auth     AuthConfig
 	Jobs     jobs.Config
+	Cache    CacheConfig
 }
 
 func Load() (Config, error) { return LoadFrom(os.LookupEnv) }
@@ -30,7 +31,8 @@ type Lookup func(string) (string, bool)
 
 func LoadFrom(lookup Lookup) (Config, error) {
 	config := Config{
-		Jobs: jobs.DefaultConfig(),
+		Cache: CacheConfig{Backend: "memory", Environment: "development"},
+		Jobs:  jobs.DefaultConfig(),
 		Server: ServerConfig{
 			Address:      "127.0.0.1:8080",
 			ReadTimeout:  5 * time.Second,
@@ -59,6 +61,9 @@ func LoadFrom(lookup Lookup) (Config, error) {
 	text("SERVER_ADDRESS", &config.Server.Address)
 	text("DATABASE_MODE", &config.Database.Mode)
 	text("DATABASE_URL", &config.Database.URL)
+	text("CACHE_BACKEND", &config.Cache.Backend)
+	text("CACHE_ENVIRONMENT", &config.Cache.Environment)
+	text("CACHE_URL", &config.Cache.URL)
 	text("AUTH_DEVELOPMENT_SMTP", &config.Auth.DevelopmentSMTP)
 	text("LOG_LEVEL", &config.Logging.Level)
 	text("LOG_FILE", &config.Logging.File)
@@ -92,6 +97,7 @@ func LoadFrom(lookup Lookup) (Config, error) {
 		name   string
 		target *bool
 	}{
+		{"CACHE_ALLOW_INSECURE", &config.Cache.AllowInsecure},
 		{
 			"DEMO_AUTH",
 			&config.DemoAuth,
@@ -139,6 +145,16 @@ func LoadFrom(lookup Lookup) (Config, error) {
 }
 
 func (c Config) Validate() error {
+	switch c.Cache.Backend {
+	case "", "none", "memory", "valkey":
+	default:
+		return fmt.Errorf("CACHE_BACKEND must be none, memory or valkey")
+	}
+
+	if c.Cache.Backend != "" && strings.TrimSpace(c.Cache.Environment) == "" {
+		return fmt.Errorf("CACHE_ENVIRONMENT is required")
+	}
+
 	if c.Auth.SessionTTL <= 0 || c.Auth.IdleTimeout < 0 ||
 		c.Auth.IdleTimeout > c.Auth.SessionTTL ||
 		len(c.Auth.TrustedOrigins) == 0 {

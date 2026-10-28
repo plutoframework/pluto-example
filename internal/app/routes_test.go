@@ -37,6 +37,16 @@ type operationSpy struct {
 	principal domain.Principal
 }
 
+func (s *operationSpy) Organization(
+	_ context.Context,
+	principal domain.Principal,
+) (domain.Organization, error) {
+	return domain.Organization{
+		ID:   principal.TenantID,
+		Name: "Synthetic organization",
+	}, nil
+}
+
 func (s *operationSpy) Create(
 	_ context.Context,
 	principal domain.Principal,

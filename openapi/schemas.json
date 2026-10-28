@@ -260,6 +260,34 @@
         ],
         "type": "object"
       },
+      "Organization": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "OrganizationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Organization"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "PasswordInput": {
         "additionalProperties": false,
         "properties": {

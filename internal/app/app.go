@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/plutoframework/pluto-example/internal/auth"
+	"github.com/plutoframework/pluto-example/internal/caching"
 	"github.com/plutoframework/pluto-example/internal/config"
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
@@ -25,6 +26,11 @@ type App struct {
 	Accounts auth.AccountDisabler
 	Handler  http.Handler
 	Close    func()
+}
+
+type applicationServices struct {
+	*operations.Service
+	*operations.OrganizationService
 }
 
 // New runs only the opt-in local demo. Production integrations are not inferred.
@@ -85,11 +91,40 @@ func NewWithLocal(
 	}
 
 	ready := false
+
+	var closeCache func()
+
 	defer func() {
 		if !ready {
+			if closeCache != nil {
+				closeCache()
+			}
+
 			store.Close()
 		}
 	}()
+
+	dataCache, shutdownCache, err := caching.New(settings.Cache)
+	if err != nil {
+		return nil, err
+	}
+
+	closeCache = shutdownCache
+
+	environment := settings.Cache.Environment
+	if environment == "" {
+		environment = "development"
+	}
+
+	organizationService, err := operations.NewOrganizationService(
+		store,
+		dataCache,
+		policy,
+		environment,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	localStore, err := authpostgres.NewLocal(store.Pool())
 	if err != nil {
@@ -137,9 +172,12 @@ func NewWithLocal(
 			logger,
 			authentication,
 			evaluator,
-			service,
+			applicationServices{
+				Service:             service,
+				OrganizationService: organizationService,
+			},
 			policy,
 		),
-		Close: store.Close,
+		Close: func() { closeCache(); store.Close() },
 	}, nil
 }

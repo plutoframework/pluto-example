@@ -61,6 +61,12 @@
       "Metadata": {
         "$ref": "./schemas.json#/components/schemas/Metadata"
       },
+      "Organization": {
+        "$ref": "./schemas.json#/components/schemas/Organization"
+      },
+      "OrganizationResponse": {
+        "$ref": "./schemas.json#/components/schemas/OrganizationResponse"
+      },
       "PasswordInput": {
         "$ref": "./schemas.json#/components/schemas/PasswordInput"
       },
@@ -342,6 +348,49 @@
         "summary": "Change a member role",
         "x-feature": "",
         "x-permission": "memberships:manage"
+      }
+    },
+    "/api/organization": {
+      "get": {
+        "description": "Read cached display metadata after live session, membership and permission checks.",
+        "operationId": "organization.get",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Read organization profile",
+        "x-feature": "",
+        "x-permission": "organization:read"
       }
     },
     "/api/purchases": {

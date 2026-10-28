@@ -13,6 +13,7 @@ import (
 type Permission = rbac.PermissionID
 
 const (
+	OrganizationRead Permission = "organization:read"
 	PurchaseCreate   Permission = "purchases:create"
 	PurchaseRead     Permission = "purchases:read"
 	PurchaseDecide   Permission = "purchases:decide"
@@ -76,6 +77,11 @@ type Membership struct {
 	ActorID     string
 	DisplayName string
 	Role        Role
+}
+
+type Organization struct {
+	ID   string
+	Name string
 }
 
 type AuditEvent struct {

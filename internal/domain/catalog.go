@@ -9,6 +9,11 @@ type PermissionDefinition = rbac.Permission
 func Permissions() []PermissionDefinition {
 	return []PermissionDefinition{
 		{
+			ID:          OrganizationRead,
+			Name:        "Read organization profile",
+			Description: "Read display metadata for the active verified organization.",
+		},
+		{
 			ID:          PurchaseCreate,
 			Name:        "Create and submit requests",
 			Description: "Create drafts and submit requests that you own.",
@@ -54,7 +59,12 @@ func Roles() []RoleDefinition {
 			ID:          Member,
 			Name:        "Member",
 			Description: "Request purchases and follow your own activity.",
-			Permissions: []Permission{PurchaseCreate, PurchaseRead, AuditRead},
+			Permissions: []Permission{
+				PurchaseCreate,
+				PurchaseRead,
+				AuditRead,
+				OrganizationRead,
+			},
 		},
 		{
 			ID:          Approver,

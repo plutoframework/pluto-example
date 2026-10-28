@@ -103,6 +103,10 @@ subprocess.run(command, cwd=Path(__file__).resolve().parent.parent, check=True)
 print("2. Bound explicit account IDs to DEVELOPMENT fixture memberships")
 
 alice, bob, carol = (cookies[name] for name in ("alice", "bob", "carol"))
+for tenant in ("northstar", "northstar", "harbor"):
+    profile, _ = call("GET", "/api/organization", cookie=alice, tenant=tenant)
+    if profile["data"]["id"] != tenant:
+        raise SystemExit("Cached organization crossed tenant scope")
 created, _ = call("POST", "/api/purchases", {"title": "Field workstation", "amount_cents": 185000}, alice, "northstar", 201)
 purchase_id = created["data"]["id"]
 call("POST", f"/api/purchases/{purchase_id}/submit", cookie=alice, tenant="northstar")

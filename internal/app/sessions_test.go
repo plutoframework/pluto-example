@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -160,10 +162,20 @@ func newLifecycleApp(t *testing.T) lifecycleApp {
 	pool, databaseURL := localDatabase(t)
 
 	settings, err := config.LoadFrom(func(key string) (string, bool) {
+		cacheEnvironment := sha256.Sum256([]byte(databaseURL))
+
 		values := map[string]string{
 			config.Prefix + "DEMO_AUTH":    "true",
 			config.Prefix + "DATABASE_URL": databaseURL,
+			config.Prefix + "CACHE_ENVIRONMENT": hex.EncodeToString(
+				cacheEnvironment[:],
+			),
 		}
+		if address := os.Getenv("PLUTO_EXAMPLE_CACHE_TEST_URL"); address != "" {
+			values[config.Prefix+"CACHE_BACKEND"] = "valkey"
+			values[config.Prefix+"CACHE_URL"] = address
+		}
+
 		value, ok := values[key]
 
 		return value, ok

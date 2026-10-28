@@ -65,6 +65,11 @@ Origin: {{base}}
 Cookie: __Host-pluto_session={{alice}}
 
 
+### Organization display metadata; membership and permissions remain live.
+GET {{base}}/api/organization
+Cookie: __Host-pluto_session={{alice}}
+X-Organization-ID: northstar
+
 ### Create a draft (201). Organization comes from verified membership, never body.
 POST {{base}}/api/purchases
 Idempotency-Key: action-11

@@ -240,6 +240,14 @@ func TestPostgresJobsRollbackAndCommitVisibility(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		// Test transaction visibility independently of host/container clock skew.
+		if _, err := tx.Exec(
+			ctx,
+			"UPDATE pluto_jobs SET available_at=clock_timestamp()-interval '1 second'",
+		); err != nil {
+			t.Fatal(err)
+		}
+
 		var requestID string
 		if err := tx.QueryRow(ctx, "SELECT id FROM pluto_jobs").
 			Scan(&requestID); err != nil {

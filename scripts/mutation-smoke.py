@@ -8,6 +8,14 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 MUTATIONS = [
     (
+        "cached organization permission guard removed",
+        "internal/operations/organization.go",
+        "if !principal.Can(s.policy, domain.OrganizationRead) {",
+        "if false && !principal.Can(s.policy, domain.OrganizationRead) {",
+        "./internal/operations",
+        "TestOrganizationCacheScopeAndAuthorization",
+    ),
+    (
         "job tenant guard removed",
         "internal/background/audit.go",
         "job.TenantID == nil",

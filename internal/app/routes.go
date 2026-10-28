@@ -11,6 +11,7 @@ import (
 	audithandlers "github.com/plutoframework/pluto-example/internal/handlers/audit"
 	featurehandlers "github.com/plutoframework/pluto-example/internal/handlers/features"
 	"github.com/plutoframework/pluto-example/internal/handlers/memberships"
+	"github.com/plutoframework/pluto-example/internal/handlers/organization"
 	"github.com/plutoframework/pluto-example/internal/handlers/purchases"
 	sessionhandlers "github.com/plutoframework/pluto-example/internal/handlers/sessions"
 	"github.com/plutoframework/pluto-example/internal/paths"
@@ -24,6 +25,7 @@ import (
 )
 
 type ApplicationOperations interface {
+	organization.Operations
 	purchases.Operations
 	memberships.Operations
 	audithandlers.Operations
@@ -101,6 +103,7 @@ func Routes(
 	}
 
 	purchases.Register(registrar, operations, settings.MaxBodyBytes)
+	organization.Register(registrar, operations)
 	memberships.Register(registrar, operations, settings.MaxBodyBytes)
 	featurehandlers.Register(registrar, evaluator)
 	audithandlers.Register(registrar, operations)
