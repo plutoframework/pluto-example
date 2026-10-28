@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 const target = new URL(
   process.env.PLUTO_EXAMPLE_WEB_API_TARGET ?? "http://127.0.0.1:18080",
@@ -36,6 +37,7 @@ export default defineConfig(({ command, isPreview }) => ({
   html: { cspNonce: command === "serve" && !isPreview ? nonce : undefined },
   plugins: [
     react(),
+    tailwindcss(),
     {
       name: "local-development-csp",
       transformIndexHtml: {

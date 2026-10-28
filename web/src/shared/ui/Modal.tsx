@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { useDialog } from "../lib/useDialog";
+import { Modal as HeroModal } from "@heroui/react";
+
 export function Modal({
   title,
   children,
@@ -9,29 +10,25 @@ export function Modal({
   children: ReactNode;
   onClose: () => void;
 }) {
-  const reference = useDialog();
   return (
-    <dialog
-      aria-labelledby="modal-title"
-      className="modal"
-      ref={reference}
-      onCancel={(event) => {
-        event.preventDefault();
-        onClose();
+    <HeroModal
+      isOpen
+      onOpenChange={(open) => {
+        if (!open) onClose();
       }}
     >
-      <div className="modal-heading">
-        <span className="eyebrow">MAKE ROOM FOR WHAT'S NEXT</span>
-        <h2 id="modal-title">{title}</h2>
-      </div>
-      {children}
-      <button
-        className="modal-close"
-        aria-label="Close dialog"
-        onClick={onClose}
-      >
-        ×
-      </button>
-    </dialog>
+      <HeroModal.Backdrop className="purchase-modal-backdrop">
+        <HeroModal.Container>
+          <HeroModal.Dialog className="purchase-modal">
+            <HeroModal.CloseTrigger aria-label="Close dialog" />
+            <HeroModal.Header className="modal-heading">
+              <span className="eyebrow">MAKE ROOM FOR WHAT'S NEXT</span>
+              <HeroModal.Heading>{title}</HeroModal.Heading>
+            </HeroModal.Header>
+            <HeroModal.Body>{children}</HeroModal.Body>
+          </HeroModal.Dialog>
+        </HeroModal.Container>
+      </HeroModal.Backdrop>
+    </HeroModal>
   );
 }

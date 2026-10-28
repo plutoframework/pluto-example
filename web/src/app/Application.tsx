@@ -1,3 +1,4 @@
+import { Button, Input, Label, TextField } from "@heroui/react";
 import { Outlet } from "@tanstack/react-router";
 import { useSession, AuthPage } from "@/features/session/public";
 import { WorkspaceProvider, useWorkspace } from "@/features/workspace/public";
@@ -20,17 +21,17 @@ function WorkspaceContent() {
           membership. A trusted developer must explicitly assign access for this
           example.
         </p>
-        <label className="account-reference">
-          Your account ID
-          <input
-            readOnly
-            value={session?.actor_id ?? ""}
-            onFocus={(event) => event.currentTarget.select()}
-          />
-        </label>
-        <button className="button ghost" onClick={refresh}>
+        <TextField
+          className="account-reference"
+          isReadOnly
+          value={session?.actor_id ?? ""}
+        >
+          <Label>Your account ID</Label>
+          <Input onFocus={(event) => event.currentTarget.select()} />
+        </TextField>
+        <Button variant="outline" onClick={refresh}>
           Refresh session
-        </button>
+        </Button>
       </EmptyState>
     );
   return <Outlet />;
@@ -48,9 +49,14 @@ export function Application() {
       <main className="full-loading">
         <Notice tone="error">
           {errorMessage(error)}{" "}
-          <button className="text-button" onClick={refresh}>
+          <Button
+            className="text-button"
+            variant="ghost"
+            size="sm"
+            onClick={refresh}
+          >
             Try again
-          </button>
+          </Button>
         </Notice>
       </main>
     );

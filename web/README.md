@@ -1,7 +1,7 @@
 # Pluto purchasing frontend
 
-A React/TypeScript application for the real Go purchasing API. This is the
-convention prototype we can review before implementing frontend CLI generators.
+A React/TypeScript application for the real Go purchasing API, rebuilt with
+HeroUI v3. The UI uses the same curated library profile as Pluto CLI v0.5.0.
 It includes sign-in, enrollment, email confirmation/resend, recovery/reset,
 purchasing, draft submission, independent review, role management and audit views.
 
@@ -77,9 +77,28 @@ shared UI cannot depend on feature code. The AST checker enforces imports,
 re-exports, literal dynamic imports, direct network access, leaf-component
 transitive data dependencies and browser-storage restrictions. It rejects data
 effects in pages/components/forms; the reviewed useScopeGuard integration hook
-uses cleanup only to suppress late UI effects after a scope changes. The shared
-useDialog hook manages native dialog opening and trigger-focus restoration. These checks
+uses cleanup only to suppress late UI effects after a scope changes. HeroUI
+manages dialog/select focus, keyboard interaction and overlay portals. These checks
 are technical boundaries, not a proof that every function has the right semantics.
+
+## HeroUI profile
+
+`pluto.toml` saves `ui = "heroui-v3"` and `template_version = 1`. Dependencies
+match the CLI profile: @heroui/react and @heroui/styles 3.2.6, Tailwind CSS and its
+Vite plugin 4.3.3, with the resolved graph in package-lock.json.
+
+HeroUI provides buttons, text/search fields, selects/listboxes, purchase/member
+tables, status chips, avatars, cards, alerts, spinners and the create-request modal.
+The paper/navy/copper theme is defined through HeroUI CSS variables in
+src/app/heroui.css. Components import HeroUI directly; feature data/policy logic
+stays in its existing modules. There is no second generic Pluto control API.
+
+This example retains its original hand-authored schema-1 prototype manifest and
+Go composition. This was an explicit UI migration, using the CLI profile's pins
+and auth component as a base. The CLI's schema-7 generator does not overwrite or
+implicitly migrate this existing application. For a new CLI-generated API use
+`pluto frontend init --ui heroui-v3 --auth`; add supported controls afterward with
+`pluto frontend add component purchase-form --kind form`.
 
 ## Contracts, access and consistency
 
@@ -163,7 +182,7 @@ server, not a production deployment. Production should serve assets and proxy Go
 behind one HTTPS origin, use explicit trusted origins, configure SPA fallback and
 an HTML-appropriate CSP, and keep API routes separate from fallback. The Go example
 retains its loopback-only development restriction. No production host, SSR runtime,
-frontend CLI commands or generator changes are included in this prototype.
+frontend generator changes are included in this example migration.
 
 Manrope and Bricolage Grotesque are self-hosted under their included OFL licenses.
 

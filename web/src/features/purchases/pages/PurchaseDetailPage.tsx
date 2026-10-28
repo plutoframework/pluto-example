@@ -1,3 +1,4 @@
+import { Button, Card } from "@heroui/react";
 import { useRef } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { useWorkspace } from "@/features/workspace/public";
@@ -49,7 +50,7 @@ export function PurchaseDetailPage() {
         action={<PurchaseStatus status={record.status} />}
       />
       <section className="detail-grid">
-        <div className="panel detail-card">
+        <Card className="panel detail-card">
           <span className="eyebrow">ESTIMATED VALUE</span>
           <h2 className="detail-amount">{money(record.amount_cents)}</h2>
           <dl>
@@ -73,8 +74,8 @@ export function PurchaseDetailPage() {
               <dd>{record.version}</dd>
             </div>
           </dl>
-        </div>
-        <div className="panel detail-card">
+        </Card>
+        <Card className="panel detail-card">
           <span className="eyebrow">NEXT STEP</span>
           <h2>
             {record.status === "draft"
@@ -95,42 +96,42 @@ export function PurchaseDetailPage() {
           )}
           <div className="button-row">
             {record.status === "draft" && own && can("purchases:create") && (
-              <button
-                className="button primary"
-                disabled={command.isPending}
+              <Button
+                variant="primary"
+                isDisabled={command.isPending}
                 onClick={() => {
                   void act("submit");
                 }}
               >
                 Submit for review ↗
-              </button>
+              </Button>
             )}
             {record.status === "submitted" &&
               !own &&
               can("purchases:decide") && (
                 <>
-                  <button
-                    className="button primary"
-                    disabled={command.isPending}
+                  <Button
+                    variant="primary"
+                    isDisabled={command.isPending}
                     onClick={() => {
                       void act("approved");
                     }}
                   >
                     Approve request
-                  </button>
-                  <button
-                    className="button danger"
-                    disabled={command.isPending}
+                  </Button>
+                  <Button
+                    variant="danger-soft"
+                    isDisabled={command.isPending}
                     onClick={() => {
                       void act("rejected");
                     }}
                   >
                     Decline request
-                  </button>
+                  </Button>
                 </>
               )}
           </div>
-        </div>
+        </Card>
       </section>
     </>
   );

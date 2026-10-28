@@ -1,3 +1,4 @@
+import { Alert, Spinner } from "@heroui/react";
 import type { ReactNode } from "react";
 
 export function Notice({
@@ -8,12 +9,16 @@ export function Notice({
   tone?: "info" | "error" | "success";
 }) {
   return (
-    <div
+    <Alert
+      status={
+        tone === "error" ? "danger" : tone === "success" ? "success" : "accent"
+      }
       className={`notice notice-${tone}`}
       role={tone === "error" ? "alert" : "status"}
     >
-      {children}
-    </div>
+      <Alert.Indicator />
+      <Alert.Content>{children}</Alert.Content>
+    </Alert>
   );
 }
 export function Loading({
@@ -23,7 +28,7 @@ export function Loading({
 }) {
   return (
     <div className="loading" role="status">
-      <span className="loading-orbit" aria-hidden="true" />
+      <Spinner size="sm" aria-hidden="true" />
       {label}
     </div>
   );

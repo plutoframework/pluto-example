@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Button, Input, Label, TextField } from "@heroui/react";
 import type { AuthInput, AuthMode } from "../types";
 
 export const modeLabels: Record<AuthMode, string> = {
@@ -18,73 +18,90 @@ export function AuthForm({
   pending: boolean;
   onSubmit: (input: AuthInput) => Promise<void>;
 }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [token, setToken] = useState("");
   const hasEmail = ["signin", "enroll", "resend", "recover"].includes(mode);
   const hasPassword = ["signin", "enroll", "reset"].includes(mode);
+  const fields = [
+    ...(hasEmail
+      ? [
+          {
+            name: "email",
+            label: "Email address",
+            type: "email",
+            autoComplete: "username",
+            maxLength: 254,
+            minLength: 1,
+          },
+        ]
+      : []),
+    ...(hasPassword
+      ? [
+          {
+            name: "password",
+            label: "Password",
+            type: "password",
+            autoComplete:
+              mode === "signin" ? "current-password" : "new-password",
+            maxLength: 1024,
+            minLength: mode === "signin" ? 1 : 12,
+          },
+        ]
+      : []),
+    ...(!hasEmail
+      ? [
+          {
+            name: "token",
+            label: "Confirmation token",
+            type: "password",
+            autoComplete: "one-time-code",
+            maxLength: 128,
+            minLength: 1,
+          },
+        ]
+      : []),
+  ];
   return (
     <form
       className="stack"
       onSubmit={async (event) => {
         event.preventDefault();
         if (pending) return;
-        await onSubmit({ email, password, token });
-        setPassword("");
-        setToken("");
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        try {
+          await onSubmit({
+            email: String(data.get("email") ?? ""),
+            password: String(data.get("password") ?? ""),
+            token: String(data.get("token") ?? ""),
+          });
+        } finally {
+          form.reset();
+        }
       }}
     >
-      {hasEmail && (
-        <label>
-          Email address
-          <input
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.test"
-            required
-            maxLength={254}
-          />
-        </label>
-      )}
-      {hasPassword && (
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete={
-              mode === "signin" ? "current-password" : "new-password"
-            }
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={mode === "signin" ? 1 : 12}
-            maxLength={1024}
-          />
-        </label>
-      )}
+      {fields.map((field) => (
+        <TextField
+          key={field.name}
+          name={field.name}
+          type={field.type}
+          isRequired
+          isDisabled={pending}
+          minLength={field.minLength}
+          maxLength={field.maxLength}
+          autoComplete={field.autoComplete}
+        >
+          <Label>{field.label}</Label>
+          <Input />
+        </TextField>
+      ))}
       {!hasEmail && (
-        <label>
-          Confirmation token
-          <input
-            type="password"
-            autoComplete="one-time-code"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            required
-            maxLength={128}
-          />
-          <span className="field-help">
-            Paste the token from your local Mailpit message. It is sent only on
-            submission.
-          </span>
-        </label>
+        <p className="field-help">
+          Paste the token from your verification or recovery message. It is sent
+          only when you submit this form.
+        </p>
       )}
-      <button className="button primary" disabled={pending} type="submit">
+      <Button type="submit" isDisabled={pending}>
         {pending ? "Working…" : modeLabels[mode]}
-        <span aria-hidden="true">↗</span>
-      </button>
+      </Button>
     </form>
   );
 }

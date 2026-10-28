@@ -90,45 +90,6 @@
   align-items: center;
   padding: 0 25px 20px;
 }
-.search-field {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  gap: 8px;
-  border: 1px solid #e2e5d9;
-  border-radius: 5px;
-  padding: 0 10px;
-  width: 255px;
-  background: #fff;
-}
-.search-field > span {
-  font-size: 22px;
-  font-weight: 400;
-  color: #889182;
-}
-.search-field input {
-  border: 0;
-  background: none;
-  padding: 9px 0;
-  font-size: 12px;
-  width: 100%;
-  font-weight: 400;
-}
-.filter-select {
-  flex-direction: row;
-  align-items: center;
-  font-weight: 450;
-  font-size: 11px;
-}
-.filter-select > span {
-  color: #78816d;
-}
-.filter-select select {
-  font-size: 11px;
-  padding: 8px 13px;
-  background: #fbfcf6;
-  border-color: #e3e5d9;
-}
 .table-scroll {
   overflow-x: auto;
 }
@@ -227,42 +188,6 @@ tbody tr:hover {
   font-size: 17px;
   text-decoration: none;
   color: #82917c;
-}
-.status {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  padding: 5px 7px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  font-size: 10px;
-  white-space: nowrap;
-}
-.status > span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.status-draft {
-  color: #637066;
-  background: #f0f2ea;
-  border-color: #e0e4d7;
-}
-.status-submitted {
-  color: #927039;
-  background: #fbf2dc;
-  border-color: #ecdfb8;
-}
-.status-approved {
-  color: #447b5a;
-  background: #eaf3e6;
-  border-color: #d0e3c9;
-}
-.status-rejected {
-  color: #a5694c;
-  background: #faeee4;
-  border-color: #ecd9c6;
 }
 .pagination {
   border-top: 1px solid var(--line);

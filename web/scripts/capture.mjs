@@ -72,6 +72,7 @@ async function screenshot(name) {
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({
     path: `${evidence}/${name}.png`,
+    animations: "disabled",
     fullPage: name !== "create-request",
   });
   if (

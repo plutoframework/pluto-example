@@ -155,16 +155,20 @@ test("member creates/submits a real request, isolates organizations and logs out
   await expect(
     page.getByRole("button", { name: "Approve request" }),
   ).toHaveCount(0);
-  await page.getByLabel("Organization", { exact: true }).selectOption("harbor");
+  await page.locator(".organization-select [data-slot=select-trigger]").click();
+  await page
+    .getByRole("option", { name: "Harbor Studio", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Make good things happen." }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: title, exact: true }),
   ).toHaveCount(0);
+  await page.locator(".organization-select [data-slot=select-trigger]").click();
   await page
-    .getByLabel("Organization", { exact: true })
-    .selectOption("northstar");
+    .getByRole("option", { name: "Northstar Research", exact: true })
+    .click();
   await expect(
     page.getByRole("link", { name: title, exact: true }),
   ).toBeVisible();
@@ -225,10 +229,13 @@ test("administrator uses server role choices and is blocked from editing self", 
     page.getByRole("heading", { name: "Organization members", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByTestId(`member-${accounts.carol!.id}`).getByRole("combobox"),
+    page
+      .getByTestId(`member-${accounts.carol!.id}`)
+      .locator("[data-slot=select-trigger]"),
   ).toBeDisabled();
   const alice = page.getByTestId(`member-${accounts.alice!.id}`);
-  await alice.getByRole("combobox").selectOption("approver");
+  await alice.locator("[data-slot=select-trigger]").click();
+  await page.getByRole("option", { name: "Approver", exact: true }).click();
   const saved = page.waitForResponse(
     (response) =>
       response.request().method() === "PATCH" &&
@@ -239,8 +246,11 @@ test("administrator uses server role choices and is blocked from editing self", 
   await expect(
     alice.getByRole("button", { name: "Update role" }),
   ).toBeDisabled();
-  await expect(alice.getByRole("combobox")).toHaveValue("approver");
-  await alice.getByRole("combobox").selectOption("member");
+  await expect(alice.locator("[data-slot=select-trigger]")).toContainText(
+    "Approver",
+  );
+  await alice.locator("[data-slot=select-trigger]").click();
+  await page.getByRole("option", { name: "Member", exact: true }).click();
   const restored = page.waitForResponse(
     (response) =>
       response.request().method() === "PATCH" &&

@@ -1,6 +1,10 @@
+@import "tailwindcss";
+@import "@heroui/styles";
 @import "./base.css";
 @import "./layout.css";
 @import "./records.css";
 @import "./feedback.css";
 @import "./auth.css";
 @import "./responsive.css";
+
+@import "./heroui.css";

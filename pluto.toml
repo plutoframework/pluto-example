@@ -19,6 +19,8 @@ local_store = "postgres"
 local_credentials = true
 
 [frontend]
+ui = "heroui-v3"
+template_version = 1
 framework = "react"
 directory = "web"
 router = "tanstack"

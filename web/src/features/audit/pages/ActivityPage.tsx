@@ -1,3 +1,4 @@
+import { Card, Chip } from "@heroui/react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/features/workspace/public";
 import { errorMessage } from "@/api/errors";
@@ -18,7 +19,7 @@ export function ActivityPage() {
         title="Every decision has a story."
         description="A server-recorded history of successful actions within your organization access."
       />
-      <section className="panel">
+      <Card className="panel">
         <div className="panel-heading">
           <div>
             <h2>Activity log</h2>
@@ -26,7 +27,9 @@ export function ActivityPage() {
               Members see their own actions. Reviewers see organization history.
             </p>
           </div>
-          <span className="tag">AUDITED BY PLUTO</span>
+          <Chip variant="soft" size="sm" className="tag">
+            AUDITED BY PLUTO
+          </Chip>
         </div>
         {query.isPending ? (
           <Loading label="Loading activity history…" />
@@ -58,9 +61,9 @@ export function ActivityPage() {
                   </p>
                 </div>
                 <div className="activity-time">
-                  <span className="status status-approved">
+                  <Chip color="success" variant="soft" size="sm">
                     {event.outcome}
-                  </span>
+                  </Chip>
                   <time dateTime={event.occurred_at}>
                     {date(event.occurred_at)}
                   </time>
@@ -83,7 +86,7 @@ export function ActivityPage() {
               });
           }}
         />
-      </section>
+      </Card>
     </>
   );
 }

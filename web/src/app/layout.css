@@ -239,50 +239,6 @@
   color: #6d7b72;
   margin-bottom: 0;
 }
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 650;
-  padding: 13px 17px;
-  text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background 0.16s,
-    transform 0.16s;
-}
-.button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-.primary {
-  color: #fffaf1;
-  background: #243e42;
-  box-shadow: 0 2px 2px #1b342111;
-}
-.primary:hover:not(:disabled) {
-  background: #365852;
-}
-.ghost {
-  border-color: #d7ddd1;
-  background: transparent;
-  color: #475a4c;
-}
-.ghost:hover:not(:disabled) {
-  background: #eeefe6;
-}
-.danger {
-  background: #f5e8df;
-  color: #8f4130;
-  border-color: #e7d2c5;
-}
-.small {
-  padding: 8px 12px;
-  font-size: 11px;
-}
 .button-row {
   display: flex;
   align-items: center;

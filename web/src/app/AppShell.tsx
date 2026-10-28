@@ -1,5 +1,6 @@
+import { Button, Chip, Label, ListBox, Select } from "@heroui/react";
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/features/workspace/public";
 import { useSignOut } from "@/features/session/public";
 import { OrbitMark } from "@/shared/ui/icons";
@@ -9,6 +10,13 @@ import { errorMessage } from "@/api/errors";
 export function AppShell({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const section =
+    pathname === "/members"
+      ? "People & roles"
+      : pathname === "/activity"
+        ? "Activity"
+        : "Purchasing";
   const signOut = useSignOut();
   return (
     <div className="application-layout">
@@ -71,36 +79,51 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="topbar">
           <span className="topbar-title">
             Organization operations<span className="topbar-divider">/</span>
-            <strong>Purchasing</strong>
+            <strong>{section}</strong>
           </span>
           <div className="topbar-actions">
-            <label>
-              <span className="sr-only">Organization</span>
-              <select
-                aria-label="Organization"
-                value={workspace.scope.organization}
-                onChange={(event) => {
-                  void workspace
-                    .selectOrganization(event.target.value)
-                    .then(() => navigate({ to: "/", search: {} }));
-                }}
-              >
-                <option value="northstar">Northstar Research</option>
-                <option value="harbor">Harbor Studio</option>
-              </select>
-            </label>
-            <span className="role-label">
+            <Select
+              aria-label="Organization"
+              className="organization-select"
+              value={workspace.scope.organization}
+              onChange={(value) => {
+                if (typeof value !== "string") return;
+                void workspace
+                  .selectOrganization(value)
+                  .then(() => navigate({ to: "/", search: {} }));
+              }}
+            >
+              <Select.Trigger aria-label="Organization">
+                <Select.Value />
+                <Select.Indicator />
+              </Select.Trigger>
+              <Select.Popover>
+                <ListBox aria-label="Organizations">
+                  <ListBox.Item id="northstar" textValue="Northstar Research">
+                    <Label>Northstar Research</Label>
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                  <ListBox.Item id="harbor" textValue="Harbor Studio">
+                    <Label>Harbor Studio</Label>
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                </ListBox>
+              </Select.Popover>
+            </Select>
+            <Chip variant="soft" size="sm" className="role-label">
               {workspace.access?.role_name ?? "Access pending"}
-            </span>
-            <button
+            </Chip>
+            <Button
               className="signout"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 void signOut.mutateAsync().catch(() => undefined);
               }}
-              disabled={signOut.isPending}
+              isDisabled={signOut.isPending}
             >
               Sign out ↗
-            </button>
+            </Button>
           </div>
         </header>
         <main id="main-content" className="main-content">

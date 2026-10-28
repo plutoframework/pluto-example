@@ -1,3 +1,4 @@
+import { Avatar, Button, Label, ListBox, Select, Table } from "@heroui/react";
 import { useState } from "react";
 import { initials } from "@/shared/lib/format";
 import type { Membership, RoleOption } from "../types";
@@ -16,48 +17,69 @@ export function MemberRow({
 }) {
   const [role, setRole] = useState(member.role);
   return (
-    <tr data-testid={`member-${member.actor_id}`}>
-      <td>
+    <Table.Row id={member.actor_id} data-testid={`member-${member.actor_id}`}>
+      <Table.Cell>
         <div className="person">
-          <span className="avatar">{initials(member.display_name)}</span>
+          <Avatar size="sm" aria-hidden="true">
+            <Avatar.Fallback>{initials(member.display_name)}</Avatar.Fallback>
+          </Avatar>
           <span className="member-name">
             {member.display_name}
             {self && <small>You</small>}
           </span>
         </div>
-      </td>
-      <td className="muted mono">{member.actor_id.slice(0, 18)}…</td>
-      <td>
-        <label>
-          <span className="sr-only">Role for {member.display_name}</span>
-          <select
-            value={role}
-            disabled={self || pending}
-            onChange={(event) => setRole(event.target.value)}
-          >
-            {roles.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </label>
-      </td>
-      <td className="numeric">
+      </Table.Cell>
+      <Table.Cell className="muted mono">
+        {member.actor_id.length > 18
+          ? `${member.actor_id.slice(0, 18)}…`
+          : member.actor_id}
+      </Table.Cell>
+      <Table.Cell>
+        <Select
+          aria-label={`Role for ${member.display_name}`}
+          value={role}
+          isDisabled={self || pending}
+          onChange={(value) => {
+            if (typeof value === "string") setRole(value);
+          }}
+          className="role-select"
+        >
+          <Select.Trigger aria-label={`Role for ${member.display_name}`}>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox aria-label="Available roles">
+              {roles.map((option) => (
+                <ListBox.Item
+                  id={option.id}
+                  key={option.id}
+                  textValue={option.name}
+                >
+                  <Label>{option.name}</Label>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
+      </Table.Cell>
+      <Table.Cell className="numeric">
         {self ? (
           <span className="muted">Managed by another admin</span>
         ) : (
-          <button
-            className="button ghost small"
-            disabled={pending || role === member.role}
+          <Button
+            variant="outline"
+            size="sm"
+            isDisabled={pending || role === member.role}
             onClick={() => {
               void onChangeRole(role);
             }}
           >
             Update role
-          </button>
+          </Button>
         )}
-      </td>
-    </tr>
+      </Table.Cell>
+    </Table.Row>
   );
 }

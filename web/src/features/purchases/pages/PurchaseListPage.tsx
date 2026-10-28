@@ -1,3 +1,13 @@
+import {
+  Button,
+  Card,
+  Chip,
+  Input,
+  Label,
+  ListBox,
+  SearchField,
+  Select,
+} from "@heroui/react";
 import { useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useWorkspace, useScopeGuard } from "@/features/workspace/public";
@@ -44,8 +54,8 @@ export function PurchaseListPage() {
         description="A clear path from your team's next idea to its next delivery."
         action={
           can("purchases:create") && (
-            <button
-              className="button primary"
+            <Button
+              variant="primary"
               onClick={() => {
                 intent.current = null;
                 command.reset();
@@ -53,7 +63,7 @@ export function PurchaseListPage() {
               }}
             >
               <span aria-hidden="true">＋</span>New request
-            </button>
+            </Button>
           )
         }
       />
@@ -78,19 +88,22 @@ export function PurchaseListPage() {
           <span>USD · {records.length} visible records loaded</span>
         </div>
       </div>
-      <section className="panel">
+      <Card className="panel">
         <div className="panel-heading">
           <div>
             <h2>
               Purchase requests{" "}
-              <span className="count-tag">{records.length}</span>
+              <Chip size="sm" variant="soft" className="count-tag">
+                {records.length}
+              </Chip>
             </h2>
             <p>Only requests your current membership allows you to see.</p>
           </div>
           {can("purchases:export") && features.purchase_export && (
-            <button
-              className="button ghost small"
-              disabled={exporter.isPending}
+            <Button
+              variant="outline"
+              size="sm"
+              isDisabled={exporter.isPending}
               onClick={async () => {
                 try {
                   const exported = await exporter.mutateAsync();
@@ -105,68 +118,78 @@ export function PurchaseListPage() {
               }}
             >
               Export JSON ↗
-            </button>
+            </Button>
           )}
         </div>
         {exporter.error && (
           <Notice tone="error">{errorMessage(exporter.error)}</Notice>
         )}
         <div className="filters">
-          <label className="search-field">
-            <span className="sr-only">Search this page</span>
-            <span aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              placeholder="Search this page…"
-              value={search.q ?? ""}
-              onChange={(event) => {
-                void navigate({
-                  search: (old) => ({
-                    ...old,
-                    q: event.target.value || undefined,
-                  }),
-                  replace: true,
-                });
-              }}
-            />
-          </label>
-          <label className="filter-select">
-            <span>Status</span>
-            <select
-              aria-label="Filter status on this page"
-              value={search.status ?? ""}
-              onChange={(event) => {
-                void navigate({
-                  search: (old) => ({
-                    ...old,
-                    status: (event.target.value as PurchaseStatus) || undefined,
-                  }),
-                  replace: true,
-                });
-              }}
-            >
-              <option value="">All statuses</option>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SearchField
+            aria-label="Search this page"
+            className="purchase-search"
+            value={search.q ?? ""}
+            onChange={(value) => {
+              void navigate({
+                search: (old) => ({ ...old, q: value || undefined }),
+                replace: true,
+              });
+            }}
+          >
+            <Input placeholder="Search this page…" />
+          </SearchField>
+          <Select
+            aria-label="Filter status on this page"
+            className="filter-select"
+            value={search.status ?? "all"}
+            onChange={(value) => {
+              if (typeof value !== "string") return;
+              void navigate({
+                search: (old) => ({
+                  ...old,
+                  status:
+                    value === "all" ? undefined : (value as PurchaseStatus),
+                }),
+                replace: true,
+              });
+            }}
+          >
+            <Label>Status</Label>
+            <Select.Trigger aria-label="Filter status on this page">
+              <Select.Value />
+              <Select.Indicator />
+            </Select.Trigger>
+            <Select.Popover>
+              <ListBox aria-label="Purchase statuses">
+                <ListBox.Item id="all" textValue="All statuses">
+                  <Label>All statuses</Label>
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+                {Object.entries(statusLabels).map(([value, label]) => (
+                  <ListBox.Item id={value} key={value} textValue={label}>
+                    <Label>{label}</Label>
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
+              </ListBox>
+            </Select.Popover>
+          </Select>
         </div>
         {query.isPending ? (
           <Loading label="Loading purchase requests…" />
         ) : query.error ? (
           <Notice tone="error">
             {errorMessage(query.error)}{" "}
-            <button
+            <Button
               className="text-button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 void query.refetch();
               }}
             >
               Try again
-            </button>
+            </Button>
           </Notice>
         ) : visible.length ? (
           <PurchaseTable purchases={visible} actor={scope.actor} />
@@ -203,7 +226,7 @@ export function PurchaseListPage() {
               });
           }}
         />
-      </section>
+      </Card>
       <p className="page-footnote">
         <span className="signal-dot" />
         Permissions are checked by Pluto on every request. Search and status

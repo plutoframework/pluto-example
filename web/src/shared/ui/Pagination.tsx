@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 export function Pagination({
   count,
   previous,
@@ -15,20 +16,17 @@ export function Pagination({
     <footer className="pagination">
       <span>{count} records on this page</span>
       <div>
-        <button
-          className="button ghost small"
-          disabled={!previous}
+        <Button
+          variant="outline"
+          size="sm"
+          isDisabled={!previous}
           onClick={onPrevious}
         >
           ← Previous
-        </button>
-        <button
-          className="button ghost small"
-          disabled={!more}
-          onClick={onNext}
-        >
+        </Button>
+        <Button variant="outline" size="sm" isDisabled={!more} onClick={onNext}>
           Next →
-        </button>
+        </Button>
       </div>
     </footer>
   );

@@ -2,14 +2,9 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  lazyRouteComponent,
 } from "@tanstack/react-router";
-import {
-  PurchaseDetailPage,
-  PurchaseListPage,
-} from "@/features/purchases/public";
 import type { PurchaseSearch } from "@/features/purchases/public";
-import { MembersPage } from "@/features/memberships/public";
-import { ActivityPage } from "@/features/audit/public";
 import { pageSearch } from "@/shared/lib/search";
 import { Application } from "./Application";
 
@@ -17,7 +12,10 @@ const root = createRootRoute({ component: Application });
 const purchases = createRoute({
   getParentRoute: () => root,
   path: "/",
-  component: PurchaseListPage,
+  component: lazyRouteComponent(
+    () => import("@/features/purchases/public"),
+    "PurchaseListPage",
+  ),
   validateSearch: (raw: Record<string, unknown>): PurchaseSearch => ({
     ...pageSearch(raw),
     q: typeof raw.q === "string" ? raw.q.slice(0, 160) : undefined,
@@ -31,18 +29,27 @@ const purchases = createRoute({
 const detail = createRoute({
   getParentRoute: () => root,
   path: "/purchases/$purchaseId",
-  component: PurchaseDetailPage,
+  component: lazyRouteComponent(
+    () => import("@/features/purchases/public"),
+    "PurchaseDetailPage",
+  ),
 });
 const members = createRoute({
   getParentRoute: () => root,
   path: "/members",
-  component: MembersPage,
+  component: lazyRouteComponent(
+    () => import("@/features/memberships/public"),
+    "MembersPage",
+  ),
   validateSearch: pageSearch,
 });
 const activity = createRoute({
   getParentRoute: () => root,
   path: "/activity",
-  component: ActivityPage,
+  component: lazyRouteComponent(
+    () => import("@/features/audit/public"),
+    "ActivityPage",
+  ),
   validateSearch: pageSearch,
 });
 export const router = createRouter({

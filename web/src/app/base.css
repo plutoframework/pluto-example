@@ -19,7 +19,7 @@
   --muted: #697774;
   --line: #e4e5db;
   --paper: #f5f3ed;
-  --accent: #c8834f;
+  --brand-copper: #c8834f;
   --green: #34765b;
 }
 * {
@@ -60,25 +60,6 @@ input:focus-visible,
 select:focus-visible {
   outline: 2px solid #b8723b;
   outline-offset: 4px;
-}
-input,
-select {
-  color: var(--ink);
-  background: #fff;
-  border: 1px solid #d8ddd3;
-  border-radius: 6px;
-  padding: 11px 13px;
-  min-width: 0;
-}
-input::placeholder {
-  color: #85908a;
-}
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  font-size: 14px;
-  font-weight: 650;
 }
 h1,
 h2,

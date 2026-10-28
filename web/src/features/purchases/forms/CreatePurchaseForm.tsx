@@ -1,3 +1,4 @@
+import { Button, Description, Input, Label, TextField } from "@heroui/react";
 import { useState } from "react";
 import type { CreatePurchase } from "../types";
 import { Notice } from "@/shared/ui/feedback";
@@ -44,41 +45,38 @@ export function CreatePurchaseForm({
       }}
     >
       {error && <Notice tone="error">{error}</Notice>}
-      <label>
-        What does your team need?
-        <input
-          name="title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="e.g. Field research equipment"
-          required
-          maxLength={160}
-        />
-      </label>
-      <label>
-        Estimated cost (USD)
-        <div className="money-input">
-          <span>$</span>
-          <input
-            name="amount"
-            inputMode="decimal"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0.00"
-            required
-          />
-        </div>
-        <span className="field-help">
+      <TextField
+        name="title"
+        value={title}
+        onChange={setTitle}
+        isRequired
+        isDisabled={pending}
+        maxLength={160}
+      >
+        <Label>What does your team need?</Label>
+        <Input placeholder="e.g. Field research equipment" autoFocus />
+      </TextField>
+      <TextField
+        name="amount"
+        value={amount}
+        onChange={setAmount}
+        isRequired
+        isDisabled={pending}
+        inputMode="decimal"
+      >
+        <Label>Estimated cost (USD)</Label>
+        <Input placeholder="0.00" />
+        <Description>
           A draft first. Submit it when you are ready for review.
-        </span>
-      </label>
+        </Description>
+      </TextField>
       <div className="button-row">
-        <button className="button primary" disabled={pending} type="submit">
+        <Button variant="primary" isDisabled={pending} type="submit">
           {pending ? "Saving…" : "Create draft"}
-        </button>
-        <button className="button ghost" type="button" onClick={onCancel}>
+        </Button>
+        <Button variant="outline" type="button" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

@@ -1,3 +1,4 @@
+import { Button } from "@heroui/react";
 import { useState } from "react";
 import { OrbitMark } from "@/shared/ui/icons";
 import { Notice } from "@/shared/ui/feedback";
@@ -77,9 +78,11 @@ export function AuthPage() {
             {(Object.keys(modeLabels) as AuthMode[])
               .filter((value) => value !== mode)
               .map((value) => (
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   key={value}
-                  disabled={mutation.isPending}
+                  isDisabled={mutation.isPending}
                   onClick={() => {
                     setMode(value);
                     setMessage("");
@@ -87,7 +90,7 @@ export function AuthPage() {
                   }}
                 >
                   {modeLabels[value]}
-                </button>
+                </Button>
               ))}
           </nav>
           <div className="local-note">

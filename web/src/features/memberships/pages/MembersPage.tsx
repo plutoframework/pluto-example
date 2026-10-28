@@ -1,3 +1,4 @@
+import { Card, Chip, Table } from "@heroui/react";
 import { useRef } from "react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/features/workspace/public";
@@ -32,56 +33,63 @@ export function MembersPage() {
       {mutation.error && (
         <Notice tone="error">{errorMessage(mutation.error)}</Notice>
       )}
-      <section className="panel">
+      <Card className="panel">
         <div className="panel-heading">
           <div>
             <h2>Organization members</h2>
             <p>Role choices and effective capabilities come from Pluto.</p>
           </div>
-          <span className="tag">ADMINISTRATOR ACCESS</span>
+          <Chip variant="soft" size="sm" className="tag">
+            ADMINISTRATOR ACCESS
+          </Chip>
         </div>
         {query.isPending ? (
           <Loading label="Loading organization members…" />
         ) : query.error ? (
           <Notice tone="error">{errorMessage(query.error)}</Notice>
         ) : (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>MEMBER</th>
-                  <th>ACCOUNT</th>
-                  <th>ROLE</th>
-                  <th className="numeric">ACTION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {query.data?.data.map((member) => (
-                  <MemberRow
-                    key={`${member.actor_id}:${member.role}`}
-                    member={member}
-                    roles={access?.roles ?? []}
-                    self={member.actor_id === scope.actor}
-                    pending={mutation.isPending}
-                    onChangeRole={async (role) => {
-                      const signature = `${member.actor_id}:${role}`;
-                      if (!intents.current.has(signature))
-                        intents.current.set(signature, crypto.randomUUID());
-                      try {
-                        await mutation.mutateAsync({
-                          actor: member.actor_id,
-                          role,
-                          key: intents.current.get(signature)!,
-                        });
-                      } catch {
-                        /* Display server policy failure above. */
-                      }
-                    }}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="members-table">
+            <Table.ScrollContainer
+              className="table-scroll"
+              tabIndex={0}
+              role="region"
+              aria-label="Organization members; scroll horizontally for all columns"
+            >
+              <Table.Content aria-label="Organization members">
+                <Table.Header>
+                  <Table.Column isRowHeader>MEMBER</Table.Column>
+                  <Table.Column>ACCOUNT</Table.Column>
+                  <Table.Column>ROLE</Table.Column>
+                  <Table.Column className="numeric">ACTION</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  {query.data?.data.map((member) => (
+                    <MemberRow
+                      key={`${member.actor_id}:${member.role}`}
+                      member={member}
+                      roles={access?.roles ?? []}
+                      self={member.actor_id === scope.actor}
+                      pending={mutation.isPending}
+                      onChangeRole={async (role) => {
+                        const signature = `${member.actor_id}:${role}`;
+                        if (!intents.current.has(signature))
+                          intents.current.set(signature, crypto.randomUUID());
+                        try {
+                          await mutation.mutateAsync({
+                            actor: member.actor_id,
+                            role,
+                            key: intents.current.get(signature)!,
+                          });
+                        } catch {
+                          /* Display server policy failure above. */
+                        }
+                      }}
+                    />
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
         )}
         <Pagination
           count={query.data?.data.length ?? 0}
@@ -97,7 +105,7 @@ export function MembersPage() {
               });
           }}
         />
-      </section>
+      </Card>
       <p className="page-footnote">
         Changing a role is a server-authorized, audited action. You cannot
         change your own role.
