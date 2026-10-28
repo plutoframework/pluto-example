@@ -10,7 +10,8 @@ services:
       - "127.0.0.1:55432:5432"
     volumes:
       - ./db/migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql:ro
-      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/002_fixtures.sql:ro
+      - ./db/migrations/002_auth_sessions.sql:/docker-entrypoint-initdb.d/002_auth_sessions.sql:ro
+      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/003_fixtures.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pluto_demo -d pluto_demo"]
       interval: 2s

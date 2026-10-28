@@ -1,10 +1,12 @@
-// Package auth contains only an explicitly enabled local demo bearer authenticator.
+// Package auth adapts verified sessions to application membership.
 package auth
 
 import (
 	"context"
 
 	"github.com/plutoframework/pluto-example/internal/domain"
+
+	"github.com/plutoframework/pluto-auth/httpauth"
 )
 
 type MembershipReader interface {
@@ -15,42 +17,62 @@ type Authenticator interface {
 	Authenticate(context.Context, string, string) (domain.Principal, error)
 }
 
-type Demo struct {
-	memberships MembershipReader
-	tokens      map[string]string
-}
+// Sessions resolves the exact membership only after HTTP session verification.
+// Request tenant selection never establishes a membership by itself.
+type Sessions struct{ Memberships MembershipReader }
 
-func NewDemo(memberships MembershipReader) *Demo {
-	return &Demo{
-		memberships: memberships,
-		tokens: map[string]string{
-			"demo_alice_mJ7Kq9vL2xR8": "alice",
-			"demo_bob_tW4nC6yP1sF3":   "bob",
-			"demo_carol_hG8dA5uZ9eQ2": "carol",
-			"demo_dana_bN6rV3kT7jS4":  "dana",
-		},
-	}
-}
-
-func (d *Demo) Authenticate(
+func (s Sessions) Authenticate(
 	ctx context.Context,
-	token, tenant string,
+	_ string,
+	tenant string,
 ) (domain.Principal, error) {
-	actor, ok := d.tokens[token]
+	session, ok := httpauth.FromContext(ctx)
 	if !ok || tenant == "" {
 		return domain.Principal{}, domain.ErrUnauthenticated
 	}
 
-	membership, err := d.memberships.Membership(ctx, tenant, actor)
+	membership, err := s.Memberships.Membership(ctx, tenant, session.SubjectID)
 	if err != nil {
 		return domain.Principal{}, domain.ErrUnauthenticated
 	}
 
+	if membership.ActorID != session.SubjectID ||
+		membership.TenantID != tenant {
+		return domain.Principal{}, domain.ErrUnauthenticated
+	}
+
 	return domain.Principal{
-		ActorID:  actor,
+		ActorID:  session.SubjectID,
 		TenantID: membership.TenantID,
 		Role:     membership.Role,
 	}, nil
+}
+
+// DemoCredentials is only wired when DEMO_AUTH is enabled on a loopback bind.
+// These public fixture credentials bootstrap sessions; they are never accepted
+// directly by protected business endpoints.
+type DemoCredentials struct{}
+
+func (DemoCredentials) Subject(
+	ctx context.Context,
+	credential string,
+) (string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+
+	switch credential {
+	case "demo_alice_mJ7Kq9vL2xR8":
+		return "alice", nil
+	case "demo_bob_tW4nC6yP1sF3":
+		return "bob", nil
+	case "demo_carol_hG8dA5uZ9eQ2":
+		return "carol", nil
+	case "demo_dana_bN6rV3kT7jS4":
+		return "dana", nil
+	default:
+		return "", domain.ErrUnauthenticated
+	}
 }
 
 func DemoMemberships() []domain.Membership {

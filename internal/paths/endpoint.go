@@ -13,6 +13,7 @@ type Endpoint struct {
 	Method        string
 	Path          string
 	Authenticated bool
+	SessionOnly   bool
 	Permission    domain.Permission
 	Feature       features.Key
 	Request       any
@@ -22,6 +23,9 @@ type Endpoint struct {
 
 func All() []Endpoint {
 	return []Endpoint{
+		CreateSession,
+		GetSession,
+		DeleteSession,
 		CreatePurchase,
 		ListPurchases,
 		GetPurchase,

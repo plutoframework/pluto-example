@@ -30,6 +30,15 @@ type Organization struct {
 	Name string
 }
 
+type PlutoAuthSession struct {
+	TokenDigest []byte
+	ID          string
+	SubjectID   string
+	CreatedAt   pgtype.Timestamptz
+	ExpiresAt   pgtype.Timestamptz
+	LastSeenAt  pgtype.Timestamptz
+}
+
 type Purchase struct {
 	TenantID    string
 	ID          string

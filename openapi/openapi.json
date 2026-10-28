@@ -286,17 +286,61 @@
           "data"
         ],
         "type": "object"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actor_id",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "SessionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Session"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
-      "demoBearer": {
+      "bearerAuth": {
+        "description": "Opaque Pluto session token; never the demo bootstrap credential.",
         "scheme": "bearer",
         "type": "http"
+      },
+      "demoCredential": {
+        "description": "Local fixture credential, accepted only by POST /auth/session.",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "sessionCookie": {
+        "in": "cookie",
+        "name": "__Host-pluto_session",
+        "type": "apiKey"
       }
     }
   },
   "info": {
-    "description": "Local ergonomics prototype; demo bearer auth only. Business validation remains in operations.",
+    "description": "Local prototype using Pluto sessions; demo credentials only bootstrap sessions. Business validation remains in operations.",
     "title": "Organization Purchasing Example",
     "version": "0.1.0"
   },
@@ -334,7 +378,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Read audit history",
@@ -374,7 +421,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Read visible feature flags",
@@ -414,7 +464,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "List organization members",
@@ -472,7 +525,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Change a member role",
@@ -512,7 +568,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "List visible purchase requests",
@@ -560,7 +619,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Create purchase request",
@@ -600,7 +662,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Export purchase requests",
@@ -648,7 +713,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Read purchase request",
@@ -706,7 +774,10 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Decide purchase request",
@@ -754,12 +825,116 @@
         },
         "security": [
           {
-            "demoBearer": []
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
           }
         ],
         "summary": "Submit purchase request",
         "x-feature": "",
         "x-permission": "purchases:create"
+      }
+    },
+    "/auth/session": {
+      "delete": {
+        "description": "Revoke the current session before clearing its cookie. Does not require an active organization membership.",
+        "operationId": "sessions.delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangedResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Sign out",
+        "x-feature": "",
+        "x-permission": ""
+      },
+      "get": {
+        "description": "Read verified session metadata without choosing an organization.",
+        "operationId": "sessions.get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Read current session",
+        "x-feature": "",
+        "x-permission": ""
+      },
+      "post": {
+        "description": "Exchange an explicitly enabled local demo credential for a secure session cookie. Requires a trusted Origin.",
+        "operationId": "sessions.create",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "demoCredential": []
+          }
+        ],
+        "summary": "Sign in",
+        "x-feature": "",
+        "x-permission": ""
       }
     }
   },

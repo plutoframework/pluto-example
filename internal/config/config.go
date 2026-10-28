@@ -18,6 +18,7 @@ type Config struct {
 	Logging  LoggingConfig
 	Features FeaturesConfig
 	DemoAuth bool
+	Auth     AuthConfig
 }
 
 func Load() (Config, error) { return LoadFrom(os.LookupEnv) }
@@ -35,6 +36,11 @@ func LoadFrom(lookup Lookup) (Config, error) {
 			Gzip:         true,
 		},
 		Database: DatabaseConfig{Mode: "memory"},
+		Auth: AuthConfig{
+			TrustedOrigins: []string{"http://127.0.0.1:8080"},
+			SessionTTL:     24 * time.Hour,
+			IdleTimeout:    30 * time.Minute,
+		},
 		Logging: LoggingConfig{
 			Level:  "info",
 			Stdout: true,
@@ -50,6 +56,31 @@ func LoadFrom(lookup Lookup) (Config, error) {
 	text("DATABASE_URL", &config.Database.URL)
 	text("LOG_LEVEL", &config.Logging.Level)
 	text("LOG_FILE", &config.Logging.File)
+
+	if value, ok := lookup(Prefix + "AUTH_TRUSTED_ORIGINS"); ok {
+		config.Auth.TrustedOrigins = strings.Split(value, ",")
+	}
+
+	for _, setting := range []struct {
+		name   string
+		target *time.Duration
+	}{
+		{"AUTH_SESSION_TTL", &config.Auth.SessionTTL},
+		{"AUTH_IDLE_TIMEOUT", &config.Auth.IdleTimeout},
+	} {
+		if value, ok := lookup(Prefix + setting.name); ok {
+			parsed, err := time.ParseDuration(value)
+			if err != nil {
+				return Config{}, fmt.Errorf(
+					"%s%s must be a duration",
+					Prefix,
+					setting.name,
+				)
+			}
+
+			*setting.target = parsed
+		}
+	}
 
 	for _, setting := range []struct {
 		name   string
@@ -102,6 +133,12 @@ func LoadFrom(lookup Lookup) (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if c.Auth.SessionTTL <= 0 || c.Auth.IdleTimeout < 0 ||
+		c.Auth.IdleTimeout > c.Auth.SessionTTL ||
+		len(c.Auth.TrustedOrigins) == 0 {
+		return fmt.Errorf("invalid AUTH session configuration")
+	}
+
 	host, _, err := net.SplitHostPort(c.Server.Address)
 	if err != nil {
 		return fmt.Errorf("SERVER_ADDRESS must be host:port")

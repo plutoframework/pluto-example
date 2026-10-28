@@ -1,7 +1,10 @@
+# First POST /auth/session with Origin: http://127.0.0.1:8080 and a demo
+# credential in Authorization. Copy the opaque token from Set-Cookie into the
+# actor variables below. Business routes never accept bootstrap credentials.
 @base = http://127.0.0.1:8080
-@alice = demo_alice_mJ7Kq9vL2xR8
-@bob = demo_bob_tW4nC6yP1sF3
-@carol = demo_carol_hG8dA5uZ9eQ2
+@alice = PASTE_ALICE_SESSION_TOKEN
+@bob = PASTE_BOB_SESSION_TOKEN
+@carol = PASTE_CAROL_SESSION_TOKEN
 @purchaseID = replace-with-created-id
 
 ### Create a draft (201). Organization comes from verified membership, never body.

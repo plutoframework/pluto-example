@@ -24,14 +24,27 @@ func main() {
 		"info": map[string]any{
 			"title":       "Organization Purchasing Example",
 			"version":     "0.1.0",
-			"description": "Local ergonomics prototype; demo bearer auth only. Business validation remains in operations.",
+			"description": "Local prototype using Pluto sessions; demo credentials only bootstrap sessions. Business validation remains in operations.",
 		},
 		"servers": []any{map[string]any{"url": "http://127.0.0.1:8080"}},
 		"components": map[string]any{
-			"securitySchemes": map[string]any{"demoBearer": map[string]any{
-				"type":   "http",
-				"scheme": "bearer",
-			}},
+			"securitySchemes": map[string]any{
+				"sessionCookie": map[string]any{
+					"type": "apiKey",
+					"in":   "cookie",
+					"name": "__Host-pluto_session",
+				},
+				"bearerAuth": map[string]any{
+					"type":        "http",
+					"scheme":      "bearer",
+					"description": "Opaque Pluto session token; never the demo bootstrap credential.",
+				},
+				"demoCredential": map[string]any{
+					"type":        "http",
+					"scheme":      "bearer",
+					"description": "Local fixture credential, accepted only by POST /auth/session.",
+				},
+			},
 			"schemas": schemas.Components,
 			"responses": map[string]any{
 				"Error": response(
@@ -45,7 +58,7 @@ func main() {
 
 	for _, endpoint := range paths.All() {
 		parameters := []any{}
-		if endpoint.Authenticated {
+		if endpoint.Authenticated && !endpoint.SessionOnly {
 			parameters = append(parameters, map[string]any{
 				"name":        "X-Organization-ID",
 				"in":          "header",
@@ -76,8 +89,26 @@ func main() {
 		}
 		if endpoint.Authenticated {
 			operation["security"] = []any{
-				map[string]any{"demoBearer": []string{}},
+				map[string]any{"bearerAuth": []string{}},
+				map[string]any{"sessionCookie": []string{}},
 			}
+		}
+
+		if endpoint.ID == paths.CreateSession.ID {
+			operation["security"] = []any{
+				map[string]any{"demoCredential": []string{}},
+			}
+
+			parameters = append(
+				parameters,
+				map[string]any{
+					"name":     "Origin",
+					"in":       "header",
+					"required": true,
+					"schema":   map[string]any{"type": "string"},
+				},
+			)
+			operation["parameters"] = parameters
 		}
 
 		responses := map[string]any{

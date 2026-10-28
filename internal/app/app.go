@@ -11,8 +11,13 @@ import (
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
 	"github.com/plutoframework/pluto-example/internal/operations"
+	"github.com/plutoframework/pluto-example/internal/pluto"
 	"github.com/plutoframework/pluto-example/internal/storage/memory"
 	"github.com/plutoframework/pluto-example/internal/storage/postgres"
+
+	plutoauth "github.com/plutoframework/pluto-auth"
+	"github.com/plutoframework/pluto-auth/httpauth"
+	authmemory "github.com/plutoframework/pluto-auth/stores/memory"
 )
 
 type App struct {
@@ -34,16 +39,31 @@ func New(
 		return nil, err
 	}
 
-	var repository operations.Repository
+	var (
+		repository   operations.Repository
+		sessionStore plutoauth.SessionStore
+	)
 
 	closeStore := func() {}
 
 	switch settings.Database.Mode {
 	case "memory":
 		repository = memory.New(auth.DemoMemberships())
+
+		sessionStore, err = authmemory.New(1000)
+		if err != nil {
+			return nil, err
+		}
 	case "postgres":
 		store, err := postgres.Open(ctx, settings.Database.URL)
 		if err != nil {
+			return nil, err
+		}
+
+		sessionStore, err = store.SessionStore()
+		if err != nil {
+			store.Close()
+
 			return nil, err
 		}
 
@@ -53,11 +73,40 @@ func New(
 
 	evaluator := features.NewSnapshot(settings.Features.Overrides())
 	service := operations.New(repository, evaluator, policy)
-	authenticator := auth.NewDemo(repository)
+	sessionConfig := plutoauth.DefaultConfig()
+	sessionConfig.TTL = settings.Auth.SessionTTL
+	sessionConfig.IdleTimeout = settings.Auth.IdleTimeout
+
+	sessions, err := plutoauth.New(sessionStore, sessionConfig)
+	if err != nil {
+		closeStore()
+
+		return nil, err
+	}
+
+	sessionHTTP, err := httpauth.New(sessions, httpauth.Config{
+		TrustedOrigins: settings.Auth.TrustedOrigins,
+		AllowBearer:    true,
+		WriteError:     pluto.SessionError,
+	})
+	if err != nil {
+		closeStore()
+
+		return nil, err
+	}
+
+	authentication := SessionAuthentication{
+		Resolver: auth.Sessions{Memberships: repository},
+		HTTP:     sessionHTTP,
+		Operations: operations.Sessions{
+			Verifier: auth.DemoCredentials{},
+			Manager:  sessions,
+		},
+	}
 	handler := Routes(
 		settings.Server,
 		logger,
-		authenticator,
+		authentication,
 		evaluator,
 		service,
 		policy,

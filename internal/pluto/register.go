@@ -11,6 +11,7 @@ import (
 	"github.com/plutoframework/pluto-example/internal/paths"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/plutoframework/pluto-auth/httpauth"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
@@ -19,6 +20,7 @@ type Registrar struct {
 	authenticator auth.Authenticator
 	features      features.Evaluator
 	policy        *rbac.Policy
+	sessions      *httpauth.Transport
 }
 
 func NewRegistrar(
@@ -26,19 +28,19 @@ func NewRegistrar(
 	authenticator auth.Authenticator,
 	evaluator features.Evaluator,
 	policy *rbac.Policy,
+	sessions *httpauth.Transport,
 ) *Registrar {
 	return &Registrar{
 		router:        router,
 		authenticator: authenticator,
 		features:      evaluator,
 		policy:        policy,
+		sessions:      sessions,
 	}
 }
 
 func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
-	r.router.MethodFunc(
-		endpoint.Method,
-		endpoint.Path,
+	invoke := http.HandlerFunc(
 		func(writer http.ResponseWriter, request *http.Request) {
 			logger := Logger(request.Context()).With("endpoint_id", endpoint.ID)
 
@@ -50,12 +52,15 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 			request = request.WithContext(
 				context.WithValue(request.Context(), loggerKey, logger),
 			)
-			if endpoint.Authenticated {
+			if endpoint.Authenticated && !endpoint.SessionOnly {
 				authorization := request.Header.Get("Authorization")
 
 				scheme, token, found := strings.Cut(authorization, " ")
-				if !found || !strings.EqualFold(scheme, "Bearer") ||
-					strings.TrimSpace(token) != token {
+
+				_, sessionVerified := httpauth.FromContext(request.Context())
+				if !sessionVerified &&
+					(!found || !strings.EqualFold(scheme, "Bearer") ||
+						strings.TrimSpace(token) != token) {
 					Error(writer, request, domain.ErrUnauthenticated)
 
 					return
@@ -115,4 +120,17 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 			handler(writer, request)
 		},
 	)
+
+	var secured http.Handler = invoke
+	if endpoint.Authenticated && r.sessions != nil {
+		secured = r.sessions.Require(invoke)
+	} else if endpoint.SessionOnly {
+		secured = http.HandlerFunc(
+			func(w http.ResponseWriter, request *http.Request) {
+				Error(w, request, domain.ErrUnauthenticated)
+			},
+		)
+	}
+
+	r.router.Method(endpoint.Method, endpoint.Path, secured)
 }

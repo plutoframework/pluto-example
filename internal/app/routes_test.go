@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/plutoframework/pluto-example/internal/api"
 	"github.com/plutoframework/pluto-example/internal/auth"
@@ -19,7 +20,12 @@ import (
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
 	"github.com/plutoframework/pluto-example/internal/paths"
+	"github.com/plutoframework/pluto-example/internal/pluto"
 	"github.com/plutoframework/pluto-example/internal/storage/memory"
+
+	plutoauth "github.com/plutoframework/pluto-auth"
+	"github.com/plutoframework/pluto-auth/httpauth"
+	authmemory "github.com/plutoframework/pluto-auth/stores/memory"
 )
 
 type operationSpy struct {
@@ -71,8 +77,8 @@ func (s *operationSpy) List(
 }
 
 const (
-	aliceToken = "demo_alice_mJ7Kq9vL2xR8"
-	bobToken   = "demo_bob_tW4nC6yP1sF3"
+	aliceToken = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	bobToken   = "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE"
 )
 
 func testRouter(
@@ -95,10 +101,55 @@ func testRouter(
 	logger := slog.New(slog.NewJSONHandler(logWriter, nil))
 	store := memory.New(auth.DemoMemberships())
 
+	sessions, err := authmemory.New(100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for token, actor := range map[string]string{aliceToken: "alice", bobToken: "bob"} {
+		digest, err := plutoauth.TokenDigest(token)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		now := time.Now().UTC()
+
+		err = sessions.Create(context.Background(), digest, plutoauth.Session{
+			ID:         actor,
+			SubjectID:  actor,
+			CreatedAt:  now,
+			LastSeenAt: now,
+			ExpiresAt:  now.Add(time.Hour),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	manager, err := plutoauth.New(sessions, plutoauth.DefaultConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	browser, err := httpauth.New(
+		manager,
+		httpauth.Config{
+			TrustedOrigins: []string{"https://app.example.com"},
+			AllowBearer:    true,
+			WriteError:     pluto.SessionError,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return Routes(
 		settings,
 		logger,
-		auth.NewDemo(store),
+		SessionAuthentication{
+			Resolver: auth.Sessions{Memberships: store},
+			HTTP:     browser,
+		},
 		features.NewSnapshot(
 			map[features.Key]bool{features.PurchaseExport: enabled},
 		),

@@ -2,7 +2,7 @@
 
 A runnable Go ergonomics prototype for an organization purchasing API. Northstar Research orders lab equipment; Harbor Studio buys production supplies. Members draft and submit requests, approvers decide requests from colleagues, and administrators manage existing memberships. Audit history follows the same organization boundary.
 
-This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI and RBAC library are developed in separate repositories. There is no frontend, CLI, production identity provider, or framework plugin system.
+This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI, auth and RBAC libraries are developed in separate repositories. There is no frontend, CLI, production identity provider, or framework plugin system.
 
 ## Run in two terminals
 
@@ -26,7 +26,7 @@ It creates a draft, submits it as Alice, approves it as Bob, checks Harbor's iso
 
 For individual requests, use [requests.http](requests.http). The generated [OpenAPI document](openapi/openapi.json) can be opened in an OpenAPI viewer; the server does not host a documentation UI.
 
-Demo authentication is **off by default** and startup fails until explicitly enabled. It only permits a numeric loopback bind. Published tokens select fixed fixture actors; `X-Organization-ID` selects an organization only after membership lookup. Arbitrary identity/role headers and organization fields in purchase bodies do not grant access.
+Demo authentication is **off by default** and startup fails until explicitly enabled. It only permits a numeric loopback bind. Demo credentials are exchanged at POST /auth/session for opaque Pluto sessions; those sessions select verified subjects; `X-Organization-ID` selects an organization only after membership lookup. Arbitrary identity/role headers and organization fields in purchase bodies do not grant access.
 
 | Actor | Token | Organization and initial role |
 | --- | --- | --- |
@@ -35,7 +35,26 @@ Demo authentication is **off by default** and startup fails until explicitly ena
 | Carol | `demo_carol_hG8dA5uZ9eQ2` | Northstar administrator |
 | Dana | `demo_dana_bN6rV3kT7jS4` | Harbor administrator |
 
-These are local demo credentials, not a production authentication scheme. Bearer authentication is implemented; cookie sessions and CSRF defenses for cookie authentication are not.
+These are local demo bootstrap credentials, accepted only by POST /auth/session.
+They cannot authenticate business endpoints directly. The endpoint requires an
+allowlisted Origin and returns a Secure, HttpOnly __Host-pluto_session cookie;
+response JSON contains metadata only. Session cookies require HTTPS in browsers.
+The loopback-only demo script explicitly sends Cookie and Origin headers for its
+local HTTP walkthrough. Production credential verification is not implemented.
+
+Pluto Auth is pinned in go.mod/go.sum without sibling replacements. Memory mode
+uses its bounded memory session store; Postgres mode uses its published pgx/sqlc
+store and the explicit 002_auth_sessions.sql migration. Cookie writes require a
+trusted Origin. Opt-in opaque bearer credentials are also supported; mixed cookie
+and Authorization credentials are rejected. GET /auth/session returns metadata;
+DELETE /auth/session revokes the server record before clearing the cookie, without
+requiring organization membership. Existing business permissions, tenant lookup,
+feature gates and transactional audit boundaries remain separate.
+
+Auth environment settings are AUTH_TRUSTED_ORIGINS (comma-separated exact
+origins), AUTH_SESSION_TTL (default 24h), and AUTH_IDLE_TIMEOUT (default 30m), all
+with the PLUTO_EXAMPLE_ prefix. Browser deployments need HTTPS and explicitly
+configured CORS/proxy trust; the example remains opt-in loopback demo only.
 
 ## Read the code in this order
 
@@ -77,7 +96,7 @@ Unknown roles/permissions and missing policies deny capability checks.
 Catalog roles contain direct grants and inheritance; use the library's
 `EffectivePermissions` to enumerate inherited capabilities for an assignment UI.
 
-The demo authenticator still resolves membership for the exact actor/organization
+The session adapter resolves membership for the exact actor/organization
 pair and supplies the trusted role in that principal. The application consumes
 that request-start snapshot rather than performing another membership lookup for
 every permission check. Tenant-scoped SQL, ownership checks, no self-approval,
@@ -106,7 +125,7 @@ go run ./cmd/api
 docker compose -p pluto-example down
 ```
 
-Alternatively, apply [001_initial.sql](db/migrations/001_initial.sql) and [fixtures.sql](db/fixtures.sql) once to a new dedicated PostgreSQL database. There is no production migration runner or generic interchangeable database abstraction.
+Alternatively, apply [001_initial.sql](db/migrations/001_initial.sql), [002_auth_sessions.sql](db/migrations/002_auth_sessions.sql), and [fixtures.sql](db/fixtures.sql) once to a new dedicated PostgreSQL database. There is no production migration runner or generic interchangeable database abstraction.
 
 For the SQL integration check, use the disposable-container script. It allocates a dynamic loopback port and deletes its own container on exit:
 
@@ -173,6 +192,6 @@ The architecture test walks source imports transitively, rejects handler access 
 
 ## Prototype limits and review questions
 
-Lists/exports/audit history are unpaginated and not streaming. There is no production authentication, browser UI, cookie session implementation, idempotency key, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
+Lists/exports/audit history are unpaginated and not streaming. There is no production credential provider, browser UI, idempotency key, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
 
 The useful review questions are whether endpoint/schema declarations remain pleasant to author, whether these narrow operation/repository boundaries are the right extraction point, and whether role changes should eventually enforce an organization-wide last-administrator invariant. No framework API is declared stable by this example.

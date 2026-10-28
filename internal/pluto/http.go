@@ -108,7 +108,7 @@ func Error(writer http.ResponseWriter, request *http.Request, err error) {
 	case errors.As(err, &oversized):
 		status, code, message = 413, "body_too_large", "request body exceeds the limit"
 	case errors.Is(err, domain.ErrUnauthenticated):
-		status, code, message = 401, "unauthenticated", "valid demo bearer token and organization membership required"
+		status, code, message = 401, "unauthenticated", "valid session and organization membership required"
 	case errors.Is(err, domain.ErrForbidden):
 		status, code, message = 403, "forbidden", "permission or resource policy denied this action"
 	case errors.Is(err, domain.ErrFeatureDisabled):

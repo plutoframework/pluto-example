@@ -12,10 +12,12 @@ import (
 	featurehandlers "github.com/plutoframework/pluto-example/internal/handlers/features"
 	"github.com/plutoframework/pluto-example/internal/handlers/memberships"
 	"github.com/plutoframework/pluto-example/internal/handlers/purchases"
+	sessionhandlers "github.com/plutoframework/pluto-example/internal/handlers/sessions"
 	"github.com/plutoframework/pluto-example/internal/pluto"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/plutoframework/pluto-auth/httpauth"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
@@ -25,10 +27,16 @@ type ApplicationOperations interface {
 	audithandlers.Operations
 }
 
+type SessionAuthentication struct {
+	Resolver   auth.Authenticator
+	HTTP       *httpauth.Transport
+	Operations sessionhandlers.Operations
+}
+
 func Routes(
 	settings config.ServerConfig,
 	logger *slog.Logger,
-	authenticator auth.Authenticator,
+	authentication SessionAuthentication,
 	evaluator features.Evaluator,
 	operations ApplicationOperations,
 	policy *rbac.Policy,
@@ -63,7 +71,21 @@ func Routes(
 		},
 	)
 
-	registrar := pluto.NewRegistrar(router, authenticator, evaluator, policy)
+	registrar := pluto.NewRegistrar(
+		router,
+		authentication.Resolver,
+		evaluator,
+		policy,
+		authentication.HTTP,
+	)
+	if authentication.HTTP != nil && authentication.Operations != nil {
+		sessionhandlers.Register(
+			registrar,
+			authentication.Operations,
+			authentication.HTTP,
+		)
+	}
+
 	purchases.Register(registrar, operations, settings.MaxBodyBytes)
 	memberships.Register(registrar, operations, settings.MaxBodyBytes)
 	featurehandlers.Register(registrar, evaluator)
