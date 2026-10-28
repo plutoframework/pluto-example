@@ -8,6 +8,7 @@ import (
 )
 
 var ListMemberships = Endpoint{
+	Collection:    true,
 	ID:            "memberships.list",
 	Name:          "List organization members",
 	Description:   "Administrators list memberships in the verified organization.",
@@ -20,6 +21,7 @@ var ListMemberships = Endpoint{
 }
 
 var ChangeRole = Endpoint{
+	Idempotent:    true,
 	ID:            "memberships.change_role",
 	Name:          "Change a member role",
 	Description:   "Administrators change another existing member's role. Self changes are forbidden.",

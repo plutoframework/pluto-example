@@ -7,6 +7,8 @@ import (
 )
 
 type Endpoint struct {
+	Collection    bool
+	Idempotent    bool
 	ID            string
 	Name          string
 	Description   string

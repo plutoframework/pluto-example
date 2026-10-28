@@ -9,6 +9,7 @@
 
 ### Create a draft (201). Organization comes from verified membership, never body.
 POST {{base}}/api/purchases
+Idempotency-Key: action-11
 Authorization: Bearer {{alice}}
 X-Organization-ID: northstar
 Content-Type: application/json
@@ -17,11 +18,13 @@ Content-Type: application/json
 
 ### Creator submits draft (200)
 POST {{base}}/api/purchases/{{purchaseID}}/submit
+Idempotency-Key: action-20
 Authorization: Bearer {{alice}}
 X-Organization-ID: northstar
 
 ### Another approver decides (200)
 POST {{base}}/api/purchases/{{purchaseID}}/decision
+Idempotency-Key: action-26
 Authorization: Bearer {{bob}}
 X-Organization-ID: northstar
 Content-Type: application/json
@@ -66,6 +69,7 @@ X-Organization-ID: northstar
 
 ### Administrator changes another existing member's role
 PATCH {{base}}/api/memberships/alice
+Idempotency-Key: action-71
 Authorization: Bearer {{carol}}
 X-Organization-ID: northstar
 Content-Type: application/json

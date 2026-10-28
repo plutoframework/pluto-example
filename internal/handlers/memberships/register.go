@@ -6,10 +6,16 @@ import (
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/paths"
 	"github.com/plutoframework/pluto-example/internal/pluto"
+
+	"github.com/plutoframework/pluto-core/pagination"
 )
 
 type Operations interface {
-	Memberships(context.Context, domain.Principal) ([]domain.Membership, error)
+	MembershipsPage(
+		context.Context,
+		domain.Principal,
+		pagination.Request,
+	) (pagination.Page[domain.Membership], error)
 	ChangeRole(context.Context, domain.Principal, string, domain.Role) error
 }
 

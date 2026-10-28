@@ -103,6 +103,56 @@ func (q *Queries) ListPurchases(ctx context.Context, tenantID string) ([]Purchas
 	return items, nil
 }
 
+const pagePurchases = `-- name: PagePurchases :many
+SELECT tenant_id, id, creator_id, title, amount_cents, status, version, created_at, updated_at FROM purchases
+WHERE tenant_id = $1
+AND ($2::text = '' OR creator_id = $2)
+AND id > $3::text
+ORDER BY id LIMIT $4::int
+`
+
+type PagePurchasesParams struct {
+	TenantID    string
+	ActorFilter string
+	AfterID     string
+	FetchLimit  int32
+}
+
+func (q *Queries) PagePurchases(ctx context.Context, arg PagePurchasesParams) ([]Purchase, error) {
+	rows, err := q.db.Query(ctx, pagePurchases,
+		arg.TenantID,
+		arg.ActorFilter,
+		arg.AfterID,
+		arg.FetchLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Purchase{}
+	for rows.Next() {
+		var i Purchase
+		if err := rows.Scan(
+			&i.TenantID,
+			&i.ID,
+			&i.CreatorID,
+			&i.Title,
+			&i.AmountCents,
+			&i.Status,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updatePurchase = `-- name: UpdatePurchase :execrows
 UPDATE purchases SET status = $3, version = $4, updated_at = $5
 WHERE tenant_id = $1 AND id = $2 AND version = $6

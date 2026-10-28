@@ -12,10 +12,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/plutoframework/pluto-auth/httpauth"
+	"github.com/plutoframework/pluto-core/httpidem"
+	"github.com/plutoframework/pluto-core/idempotency"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type Registrar struct {
+	Idempotency   *httpidem.Handler
 	router        chi.Router
 	authenticator auth.Authenticator
 	features      features.Evaluator
@@ -115,6 +118,39 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 
 					return
 				}
+			}
+
+			if endpoint.Idempotent {
+				if r.Idempotency == nil {
+					JSON(
+						writer,
+						503,
+						map[string]any{
+							"error": map[string]any{
+								"code":    "idempotency_unavailable",
+								"message": "Service Unavailable",
+								"request_id": writer.Header().
+									Get("X-Request-ID"),
+							},
+						},
+					)
+
+					return
+				}
+
+				p := Principal(request)
+				r.Idempotency.Serve(
+					writer,
+					request,
+					idempotency.Scope{
+						Subject:   p.ActorID,
+						Tenant:    p.TenantID,
+						Operation: endpoint.ID,
+					},
+					handler,
+				)
+
+				return
 			}
 
 			handler(writer, request)

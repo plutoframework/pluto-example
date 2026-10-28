@@ -30,9 +30,17 @@ func (h *Handler) get(writer http.ResponseWriter, request *http.Request) {
 }
 
 func (h *Handler) list(writer http.ResponseWriter, request *http.Request) {
-	purchases, err := h.operations.List(
+	page, err := pluto.Pagination(request, paths.ListPurchases.ID)
+	if err != nil {
+		pluto.Error(writer, request, err)
+
+		return
+	}
+
+	purchases, err := h.operations.ListPage(
 		request.Context(),
 		pluto.Principal(request),
+		page,
 	)
 	if err != nil {
 		pluto.Error(writer, request, err)
@@ -43,7 +51,10 @@ func (h *Handler) list(writer http.ResponseWriter, request *http.Request) {
 	pluto.JSON(
 		writer,
 		paths.ListPurchases.SuccessStatus,
-		api.PurchasesResponse{Data: api.PurchaseModels(purchases)},
+		api.PurchasesResponse{
+			Data: api.PurchaseModels(purchases.Data),
+			Page: purchases.Page,
+		},
 	)
 }
 
@@ -63,6 +74,6 @@ func (h *Handler) export(writer http.ResponseWriter, request *http.Request) {
 	pluto.JSON(
 		writer,
 		paths.ExportPurchases.SuccessStatus,
-		api.PurchasesResponse{Data: api.PurchaseModels(purchases)},
+		api.PurchaseExportResponse{Data: api.PurchaseModels(purchases)},
 	)
 }

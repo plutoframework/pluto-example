@@ -79,6 +79,48 @@ func main() {
 			}
 		}
 
+		if endpoint.Collection {
+			parameters = append(
+				parameters,
+				map[string]any{
+					"name": "limit",
+					"in":   "query",
+					"schema": map[string]any{
+						"type":    "integer",
+						"minimum": 1,
+						"maximum": 100,
+						"default": 25,
+					},
+				},
+				map[string]any{
+					"name": "cursor",
+					"in":   "query",
+					"schema": map[string]any{
+						"type":      "string",
+						"maxLength": 2048,
+					},
+				},
+			)
+		}
+
+		if endpoint.Idempotent {
+			parameters = append(
+				parameters,
+				map[string]any{
+					"name":        "Idempotency-Key",
+					"in":          "header",
+					"required":    true,
+					"description": "Reuse for retries of this action. 409 means conflict or pending reconciliation. Completed retention 24h.",
+					"schema": map[string]any{
+						"type":      "string",
+						"minLength": 1,
+						"maxLength": 128,
+						"pattern":   "^[A-Za-z0-9_.:-]+$",
+					},
+				},
+			)
+		}
+
 		operation := map[string]any{
 			"operationId":  endpoint.ID,
 			"summary":      endpoint.Name,
@@ -144,28 +186,45 @@ func main() {
 
 	document["paths"] = routes
 
-	encoded, err := json.MarshalIndent(document, "", "  ")
-	if err != nil {
-		panic(err)
+	// Keep the spec and schemas readable and individually below 1,000 lines.
+	references := map[string]any{}
+	for name := range schemas.Components {
+		references[name] = map[string]any{
+			"$ref": "./schemas.json#/components/schemas/" + name,
+		}
 	}
 
-	encoded = append(encoded, '\n')
+	document["components"].(map[string]any)["schemas"] = references
 
-	const destination = "openapi/openapi.json"
-	if *check {
-		existing, err := os.ReadFile(destination)
-		if err != nil || string(existing) != string(encoded) {
-			fmt.Fprintln(os.Stderr, "OpenAPI differs; run go run ./cmd/openapi")
-			os.Exit(1)
+	artifacts := map[string]any{
+		"openapi/openapi.json": document,
+		"openapi/schemas.json": map[string]any{
+			"components": map[string]any{"schemas": schemas.Components},
+		},
+	}
+	for destination, value := range artifacts {
+		encoded, err := json.MarshalIndent(value, "", "  ")
+		if err != nil {
+			panic(err)
 		}
 
-		fmt.Println("OpenAPI artifact is current")
-
-		return
+		encoded = append(encoded, '\n')
+		if *check {
+			existing, err := os.ReadFile(destination)
+			if err != nil || string(existing) != string(encoded) {
+				fmt.Fprintln(
+					os.Stderr,
+					"OpenAPI differs; run go run ./cmd/openapi",
+				)
+				os.Exit(1)
+			}
+		} else if err := os.WriteFile(destination, encoded, 0o644); err != nil {
+			panic(err)
+		}
 	}
 
-	if err := os.WriteFile(destination, encoded, 0o644); err != nil {
-		panic(err)
+	if *check {
+		fmt.Println("OpenAPI artifacts are current")
 	}
 }
 

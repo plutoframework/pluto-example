@@ -12,9 +12,17 @@ import (
 )
 
 func (h *Handler) list(writer http.ResponseWriter, request *http.Request) {
-	memberships, err := h.operations.Memberships(
+	page, err := pluto.Pagination(request, paths.ListMemberships.ID)
+	if err != nil {
+		pluto.Error(writer, request, err)
+
+		return
+	}
+
+	memberships, err := h.operations.MembershipsPage(
 		request.Context(),
 		pluto.Principal(request),
+		page,
 	)
 	if err != nil {
 		pluto.Error(writer, request, err)
@@ -22,8 +30,8 @@ func (h *Handler) list(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	result := make([]api.Membership, 0, len(memberships))
-	for _, membership := range memberships {
+	result := make([]api.Membership, 0, len(memberships.Data))
+	for _, membership := range memberships.Data {
 		result = append(result, api.Membership{
 			ActorID:     membership.ActorID,
 			DisplayName: membership.DisplayName,
@@ -34,7 +42,7 @@ func (h *Handler) list(writer http.ResponseWriter, request *http.Request) {
 	pluto.JSON(
 		writer,
 		paths.ListMemberships.SuccessStatus,
-		api.MembershipsResponse{Data: result},
+		api.MembershipsResponse{Data: result, Page: memberships.Page},
 	)
 }
 

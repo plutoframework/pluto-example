@@ -77,3 +77,53 @@ func (q *Queries) ListAudit(ctx context.Context, arg ListAuditParams) ([]AuditEv
 	}
 	return items, nil
 }
+
+const pageAudit = `-- name: PageAudit :many
+SELECT tenant_id, id, actor_id, action, resource_id, outcome, occurred_at FROM audit_events WHERE tenant_id = $1
+AND ($2::text = '' OR actor_id = $2)
+AND ($3::text = '' OR
+ (occurred_at,id) > ($4::timestamptz,$3::text))
+ORDER BY occurred_at,id LIMIT $5::int
+`
+
+type PageAuditParams struct {
+	TenantID    string
+	ActorFilter string
+	AfterID     string
+	AfterTime   pgtype.Timestamptz
+	FetchLimit  int32
+}
+
+func (q *Queries) PageAudit(ctx context.Context, arg PageAuditParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, pageAudit,
+		arg.TenantID,
+		arg.ActorFilter,
+		arg.AfterID,
+		arg.AfterTime,
+		arg.FetchLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AuditEvent{}
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.TenantID,
+			&i.ID,
+			&i.ActorID,
+			&i.Action,
+			&i.ResourceID,
+			&i.Outcome,
+			&i.OccurredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

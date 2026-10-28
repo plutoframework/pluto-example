@@ -13,6 +13,8 @@ import (
 
 	"github.com/plutoframework/pluto-example/internal/api"
 	"github.com/plutoframework/pluto-example/internal/domain"
+
+	"github.com/plutoframework/pluto-core/pagination"
 )
 
 type contextKey int
@@ -117,7 +119,8 @@ func Error(writer http.ResponseWriter, request *http.Request, err error) {
 		status, code, message = 404, "not_found", "resource not found"
 	case errors.Is(err, domain.ErrConflict):
 		status, code, message = 409, "conflict", "resource changed or transition is invalid"
-	case errors.Is(err, domain.ErrInvalid),
+	case errors.Is(err, pagination.ErrInvalid),
+		errors.Is(err, domain.ErrInvalid),
 		errors.Is(err, io.EOF),
 		errors.Is(err, io.ErrUnexpectedEOF),
 		errors.As(err, &syntax),

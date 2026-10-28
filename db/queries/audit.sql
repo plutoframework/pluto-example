@@ -6,3 +6,10 @@ VALUES ($1, $2, $3, $4, $5, $6, $7);
 SELECT * FROM audit_events
 WHERE tenant_id = $1 AND (sqlc.arg(actor_filter)::text = '' OR actor_id = sqlc.arg(actor_filter))
 ORDER BY occurred_at, id;
+
+-- name: PageAudit :many
+SELECT * FROM audit_events WHERE tenant_id = $1
+AND (sqlc.arg(actor_filter)::text = '' OR actor_id = sqlc.arg(actor_filter))
+AND (sqlc.arg(after_id)::text = '' OR
+ (occurred_at,id) > (sqlc.arg(after_time)::timestamptz,sqlc.arg(after_id)::text))
+ORDER BY occurred_at,id LIMIT sqlc.arg(fetch_limit)::int;

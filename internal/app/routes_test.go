@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +27,8 @@ import (
 	plutoauth "github.com/plutoframework/pluto-auth"
 	"github.com/plutoframework/pluto-auth/httpauth"
 	authmemory "github.com/plutoframework/pluto-auth/stores/memory"
+	idemmemory "github.com/plutoframework/pluto-core/idempotency/memory"
+	"github.com/plutoframework/pluto-core/pagination"
 )
 
 type operationSpy struct {
@@ -63,17 +66,18 @@ func (s *operationSpy) Export(
 	return []domain.Purchase{}, nil
 }
 
-func (s *operationSpy) List(
+func (s *operationSpy) ListPage(
 	_ context.Context,
 	principal domain.Principal,
-) ([]domain.Purchase, error) {
+	_ pagination.Request,
+) (pagination.Page[domain.Purchase], error) {
 	s.calls++
 	s.principal = principal
 
-	return []domain.Purchase{{
+	return pagination.Page[domain.Purchase]{Data: []domain.Purchase{{
 		ID:    "request",
 		Title: strings.Repeat("x", 150),
-	}}, nil
+	}}}, nil
 }
 
 const (
@@ -143,12 +147,20 @@ func testRouter(
 		t.Fatal(err)
 	}
 
+	idemStore, _ := idemmemory.New(1000)
+
+	idempotent, err := pluto.NewIdempotency(idemStore, settings.MaxBodyBytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return Routes(
 		settings,
 		logger,
 		SessionAuthentication{
-			Resolver: auth.Sessions{Memberships: store},
-			HTTP:     browser,
+			Idempotency: idempotent,
+			Resolver:    auth.Sessions{Memberships: store},
+			HTTP:        browser,
 		},
 		features.NewSnapshot(
 			map[features.Key]bool{features.PurchaseExport: enabled},
@@ -169,6 +181,7 @@ func call(
 		strings.NewReader(body),
 	)
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Idempotency-Key", rand.Text())
 
 	if token != "" {
 		request.Header.Set("Authorization", "Bearer "+token)

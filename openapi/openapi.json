@@ -14,311 +14,61 @@
     },
     "schemas": {
       "AuditEvent": {
-        "additionalProperties": false,
-        "properties": {
-          "action": {
-            "type": "string"
-          },
-          "actor_id": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "occurred_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "organization_id": {
-            "type": "string"
-          },
-          "outcome": {
-            "type": "string"
-          },
-          "resource_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "organization_id",
-          "actor_id",
-          "action",
-          "resource_id",
-          "outcome",
-          "occurred_at"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/AuditEvent"
       },
       "AuditResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/AuditEvent"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/AuditResponse"
       },
       "ChangeRoleRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "role": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "role"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/ChangeRoleRequest"
       },
       "Changed": {
-        "additionalProperties": false,
-        "properties": {
-          "updated": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "updated"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/Changed"
       },
       "ChangedResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Changed"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/ChangedResponse"
       },
       "CreatePurchaseRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "amount_cents": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "title": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "title",
-          "amount_cents"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/CreatePurchaseRequest"
       },
       "DecisionRequest": {
-        "additionalProperties": false,
-        "properties": {
-          "decision": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "decision"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/DecisionRequest"
       },
       "Error": {
-        "additionalProperties": false,
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "request_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "code",
-          "message",
-          "request_id"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/Error"
       },
       "ErrorResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "error": {
-            "$ref": "#/components/schemas/Error"
-          }
-        },
-        "required": [
-          "error"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/ErrorResponse"
       },
       "FeaturesResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "additionalProperties": {
-              "type": "boolean"
-            },
-            "type": "object"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/FeaturesResponse"
       },
       "Membership": {
-        "additionalProperties": false,
-        "properties": {
-          "actor_id": {
-            "type": "string"
-          },
-          "display_name": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "actor_id",
-          "display_name",
-          "role"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/Membership"
       },
       "MembershipsResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/Membership"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/MembershipsResponse"
+      },
+      "Metadata": {
+        "$ref": "./schemas.json#/components/schemas/Metadata"
       },
       "Purchase": {
-        "additionalProperties": false,
-        "properties": {
-          "amount_cents": {
-            "format": "int64",
-            "type": "integer"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "creator_id": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "organization_id": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "version": {
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "organization_id",
-          "creator_id",
-          "title",
-          "amount_cents",
-          "status",
-          "version",
-          "created_at",
-          "updated_at"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/Purchase"
+      },
+      "PurchaseExportResponse": {
+        "$ref": "./schemas.json#/components/schemas/PurchaseExportResponse"
       },
       "PurchaseResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Purchase"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/PurchaseResponse"
       },
       "PurchasesResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/Purchase"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/PurchasesResponse"
       },
       "Session": {
-        "additionalProperties": false,
-        "properties": {
-          "actor_id": {
-            "type": "string"
-          },
-          "expires_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "actor_id",
-          "expires_at"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/Session"
       },
       "SessionResponse": {
-        "additionalProperties": false,
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/Session"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "type": "object"
+        "$ref": "./schemas.json#/components/schemas/SessionResponse"
       }
     },
     "securitySchemes": {
@@ -357,6 +107,24 @@
             "name": "X-Organization-ID",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 2048,
               "type": "string"
             }
           }
@@ -445,6 +213,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 2048,
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -494,6 +280,18 @@
             "name": "actorID",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Reuse for retries of this action. 409 means conflict or pending reconciliation. Completed retention 24h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:-]+$",
               "type": "string"
             }
           }
@@ -549,6 +347,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "maxLength": 2048,
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -588,6 +404,18 @@
             "name": "X-Organization-ID",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Reuse for retries of this action. 409 means conflict or pending reconciliation. Completed retention 24h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:-]+$",
               "type": "string"
             }
           }
@@ -650,7 +478,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchasesResponse"
+                  "$ref": "#/components/schemas/PurchaseExportResponse"
                 }
               }
             },
@@ -745,6 +573,18 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Reuse for retries of this action. 409 means conflict or pending reconciliation. Completed retention 24h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:-]+$",
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -804,6 +644,18 @@
             "name": "purchaseID",
             "required": true,
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Reuse for retries of this action. 409 means conflict or pending reconciliation. Completed retention 24h.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_.:-]+$",
               "type": "string"
             }
           }

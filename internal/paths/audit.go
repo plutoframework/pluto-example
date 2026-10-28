@@ -8,6 +8,7 @@ import (
 )
 
 var ListAudit = Endpoint{
+	Collection:    true,
 	ID:            "audit.list",
 	Name:          "Read audit history",
 	Description:   "Members see their own actions; approvers and administrators see organization history.",

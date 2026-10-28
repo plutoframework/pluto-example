@@ -18,6 +18,9 @@ import (
 	plutoauth "github.com/plutoframework/pluto-auth"
 	"github.com/plutoframework/pluto-auth/httpauth"
 	authmemory "github.com/plutoframework/pluto-auth/stores/memory"
+	"github.com/plutoframework/pluto-core/idempotency"
+	idemmemory "github.com/plutoframework/pluto-core/idempotency/memory"
+	idempostgres "github.com/plutoframework/pluto-core/stores/postgres"
 )
 
 type App struct {
@@ -40,8 +43,9 @@ func New(
 	}
 
 	var (
-		repository   operations.Repository
-		sessionStore plutoauth.SessionStore
+		idempotencyStore idempotency.Store
+		repository       operations.Repository
+		sessionStore     plutoauth.SessionStore
 	)
 
 	closeStore := func() {}
@@ -49,6 +53,11 @@ func New(
 	switch settings.Database.Mode {
 	case "memory":
 		repository = memory.New(auth.DemoMemberships())
+
+		idempotencyStore, err = idemmemory.New(1000)
+		if err != nil {
+			return nil, err
+		}
 
 		sessionStore, err = authmemory.New(1000)
 		if err != nil {
@@ -61,6 +70,13 @@ func New(
 		}
 
 		sessionStore, err = store.SessionStore()
+		if err != nil {
+			store.Close()
+
+			return nil, err
+		}
+
+		idempotencyStore, err = idempostgres.New(store.Pool())
 		if err != nil {
 			store.Close()
 
@@ -95,9 +111,20 @@ func New(
 		return nil, err
 	}
 
+	idempotent, err := pluto.NewIdempotency(
+		idempotencyStore,
+		settings.Server.MaxBodyBytes,
+	)
+	if err != nil {
+		closeStore()
+
+		return nil, err
+	}
+
 	authentication := SessionAuthentication{
-		Resolver: auth.Sessions{Memberships: repository},
-		HTTP:     sessionHTTP,
+		Idempotency: idempotent,
+		Resolver:    auth.Sessions{Memberships: repository},
+		HTTP:        sessionHTTP,
 		Operations: operations.Sessions{
 			Verifier: auth.DemoCredentials{},
 			Manager:  sessions,

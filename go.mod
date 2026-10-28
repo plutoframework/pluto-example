@@ -7,6 +7,8 @@ require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/plutoframework/pluto-auth v0.0.0-20261028021955-c1eabc6c680e
 	github.com/plutoframework/pluto-auth/stores/postgres v0.0.0-20261028021955-c1eabc6c680e
+	github.com/plutoframework/pluto-core v0.1.2
+	github.com/plutoframework/pluto-core/stores/postgres v0.1.0
 	github.com/plutoframework/pluto-rbac v0.0.0-20261027065629-25c44e7fe21b
 )
 

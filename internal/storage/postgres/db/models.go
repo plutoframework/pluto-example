@@ -39,6 +39,17 @@ type PlutoAuthSession struct {
 	LastSeenAt  pgtype.Timestamptz
 }
 
+type PlutoIdempotency struct {
+	ID          string
+	Fingerprint string
+	Owner       string
+	ExpiresAt   pgtype.Timestamptz
+	Completed   bool
+	Status      int32
+	ContentType string
+	Body        []byte
+}
+
 type Purchase struct {
 	TenantID    string
 	ID          string

@@ -86,6 +86,7 @@ func isolatedStore(t *testing.T) *Store {
 	for _, name := range []string{
 		"migrations/001_initial.sql",
 		"migrations/002_auth_sessions.sql",
+		"migrations/003_idempotency.sql",
 		"fixtures.sql",
 	} {
 		source, err := os.ReadFile(filepath.Join("..", "..", "..", "db", name))

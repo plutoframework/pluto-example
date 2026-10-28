@@ -37,6 +37,9 @@ func Open(ctx context.Context, url string) (*Store, error) {
 	}, nil
 }
 
+// Pool exposes the explicit composition boundary for shared durable adapters.
+func (s *Store) Pool() *pgxpool.Pool { return s.pool }
+
 func (s *Store) Close() { s.pool.Close() }
 
 func translate(err error) error {

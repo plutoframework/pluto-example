@@ -9,6 +9,7 @@ import (
 )
 
 var CreatePurchase = Endpoint{
+	Idempotent:    true,
 	ID:            "purchases.create",
 	Name:          "Create purchase request",
 	Description:   "Create a draft request in the verified active organization.",
@@ -22,6 +23,7 @@ var CreatePurchase = Endpoint{
 }
 
 var ListPurchases = Endpoint{
+	Collection:    true,
 	ID:            "purchases.list",
 	Name:          "List visible purchase requests",
 	Description:   "Members see their own requests; approvers and administrators see all requests in their organization.",
@@ -46,6 +48,7 @@ var GetPurchase = Endpoint{
 }
 
 var SubmitPurchase = Endpoint{
+	Idempotent:    true,
 	ID:            "purchases.submit",
 	Name:          "Submit purchase request",
 	Description:   "The creator submits a draft for approval. Other transitions return conflict.",
@@ -58,6 +61,7 @@ var SubmitPurchase = Endpoint{
 }
 
 var DecidePurchase = Endpoint{
+	Idempotent:    true,
 	ID:            "purchases.decide",
 	Name:          "Decide purchase request",
 	Description:   "An approver approves or rejects a submitted request created by someone else.",
@@ -79,6 +83,6 @@ var ExportPurchases = Endpoint{
 	Authenticated: true,
 	Permission:    domain.PurchaseExport,
 	Feature:       features.PurchaseExport,
-	Response:      api.PurchasesResponse{},
+	Response:      api.PurchaseExportResponse{},
 	SuccessStatus: http.StatusOK,
 }

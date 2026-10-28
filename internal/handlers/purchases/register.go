@@ -6,6 +6,8 @@ import (
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/paths"
 	"github.com/plutoframework/pluto-example/internal/pluto"
+
+	"github.com/plutoframework/pluto-core/pagination"
 )
 
 type Operations interface {
@@ -15,7 +17,11 @@ type Operations interface {
 		string,
 		int64,
 	) (domain.Purchase, error)
-	List(context.Context, domain.Principal) ([]domain.Purchase, error)
+	ListPage(
+		context.Context,
+		domain.Principal,
+		pagination.Request,
+	) (pagination.Page[domain.Purchase], error)
 	Get(context.Context, domain.Principal, string) (domain.Purchase, error)
 	Submit(context.Context, domain.Principal, string) (domain.Purchase, error)
 	Decide(

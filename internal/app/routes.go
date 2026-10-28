@@ -18,6 +18,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/plutoframework/pluto-auth/httpauth"
+	"github.com/plutoframework/pluto-core/httpidem"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
@@ -28,9 +29,10 @@ type ApplicationOperations interface {
 }
 
 type SessionAuthentication struct {
-	Resolver   auth.Authenticator
-	HTTP       *httpauth.Transport
-	Operations sessionhandlers.Operations
+	Idempotency *httpidem.Handler
+	Resolver    auth.Authenticator
+	HTTP        *httpauth.Transport
+	Operations  sessionhandlers.Operations
 }
 
 func Routes(
@@ -78,6 +80,8 @@ func Routes(
 		policy,
 		authentication.HTTP,
 	)
+
+	registrar.Idempotency = authentication.Idempotency
 	if authentication.HTTP != nil && authentication.Operations != nil {
 		sessionhandlers.Register(
 			registrar,

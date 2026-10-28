@@ -76,3 +76,40 @@ func (q *Queries) ListMemberships(ctx context.Context, tenantID string) ([]Membe
 	}
 	return items, nil
 }
+
+const pageMemberships = `-- name: PageMemberships :many
+SELECT tenant_id, actor_id, display_name, role FROM memberships WHERE tenant_id = $1
+AND actor_id > $2::text
+ORDER BY actor_id LIMIT $3::int
+`
+
+type PageMembershipsParams struct {
+	TenantID   string
+	AfterID    string
+	FetchLimit int32
+}
+
+func (q *Queries) PageMemberships(ctx context.Context, arg PageMembershipsParams) ([]Membership, error) {
+	rows, err := q.db.Query(ctx, pageMemberships, arg.TenantID, arg.AfterID, arg.FetchLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Membership{}
+	for rows.Next() {
+		var i Membership
+		if err := rows.Scan(
+			&i.TenantID,
+			&i.ActorID,
+			&i.DisplayName,
+			&i.Role,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -192,6 +192,49 @@ The architecture test walks source imports transitively, rejects handler access 
 
 ## Prototype limits and review questions
 
-Lists/exports/audit history are unpaginated and not streaming. There is no production credential provider, browser UI, idempotency key, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
+Collections use bounded cursor pages; the separate export remains unpaginated and is not streaming. There is no production credential provider, browser UI, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
 
 The useful review questions are whether endpoint/schema declarations remain pleasant to author, whether these narrow operation/repository boundaries are the right extraction point, and whether role changes should eventually enforce an organization-wide last-administrator invariant. No framework API is declared stable by this example.
+
+## Shared pagination and idempotency
+
+`github.com/plutoframework/pluto-core` owns the reusable runtime. Thin adapters in
+internal/pluto wire shared types; domain policy and tenant predicates stay here.
+Purchases/memberships order by unique immutable ID; audit orders by occurred_at
+and ID, preserving same-timestamp boundaries. The list route catalog explicitly
+marks Collection; GET details/features/session/export remain separate. List
+responses retain data plus page: {has_more,next_cursor}. Default limit 25, maximum
+100. Use ?limit=2, then ?limit=2&cursor=<next_cursor>. Filters and verified
+actor/organization/role/endpoint bind cursors. Cursors are unsigned opaque
+boundaries, never authorization. Repositories enforce tenant/owner predicates
+before LIMIT limit+1; memory retains only bounded next-page rows while scanning.
+OpenAPI now splits readable schemas into openapi/schemas.json (external refs).
+
+Business writes (create, submit, decide, change role) require a client-supplied
+Idempotency-Key, 1–128 ASCII letters/digits/-_.:. Pick a new key for a distinct
+action and reuse it for retries. The request demo supplies action keys on the
+client. Same subject/organization/operation/key and exact fingerprint replays
+status/body; changed request or pending outcome returns 409. Authentication,
+current membership/RBAC and feature gates run before every replay. Sessions and
+loopback credential bootstrap are exempt and never cache cookies or credentials.
+Only Content-Type is retained with bounded JSON bytes/status; global security
+headers remain current. Body limit stays 16 KiB; recorded response limit 256 KiB.
+
+Memory mode is explicitly local demo only, bounded to 1,000 claims and reset on
+restart; it cannot deduplicate across instances. PostgreSQL uses the separate
+published Core adapter and explicit db/migrations/003_idempotency.sql. Apply this
+to existing databases; no startup DDL. Completed retention is 24h from claim;
+expired completed keys can execute again. Schedule adapter.PruneCompleted from
+an application-owned maintenance path; it removes at most 1,000 rows per call.
+Pending claims never expire automatically or get stolen after a crash. Monitor
+and reconcile them against business/audit records before explicitly resolving or
+removing them. Memory capacity and storage failures fail closed.
+
+This example's generic JSON capture records completion after the domain write:
+mutation+audit remain atomic with each other, but a crash before completion leaves
+the retry blocked for reconciliation. It does not promise exactly-once effects.
+For atomic mutation+audit+completion use the lower-level Core claim primitives
+and `postgres.New(tx).Complete` in the SAME transaction as typed app queries; the
+[core transaction walkthrough](https://github.com/plutoframework/pluto-core/blob/main/docs/transactions.md)
+and real PostgreSQL rollback/commit tests demonstrate that pattern. Arbitrary
+business transactions and external effects are never automatically retried.

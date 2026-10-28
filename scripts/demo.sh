@@ -29,9 +29,11 @@ carol=$(login demo_carol_hG8dA5uZ9eQ2)
 request() {
   local token=$1 organization=$2 method=$3 path=$4
   shift 4
+  local action_key
+  action_key=$(python3 -c 'import uuid; print(uuid.uuid4())')
   curl --silent --show-error --fail-with-body \
     -H "Cookie: __Host-pluto_session=$token" -H "Origin: $origin" -H "X-Organization-ID: $organization" \
-    -H 'Content-Type: application/json' -X "$method" "$base$path" "$@"
+    -H "Idempotency-Key: $action_key" -H 'Content-Type: application/json' -X "$method" "$base$path" "$@"
 }
 echo '1. Create a draft as Alice in Northstar'
 created=$(request "$alice" northstar POST /api/purchases \
@@ -56,7 +58,7 @@ echo '7. Carol promotes Alice to approver; Alice still cannot decide her own req
 request "$carol" northstar PATCH /api/memberships/alice --data '{"role":"approver"}'
 curl --silent --show-error --write-out '\nHTTP %{http_code}\n' \
   -H "Cookie: __Host-pluto_session=$alice" -H "Origin: $origin" -H 'X-Organization-ID: northstar' \
-  -H 'Content-Type: application/json' -X POST "$base/api/purchases/$id/decision" --data '{"decision":"approved"}'
+  -H 'Idempotency-Key: expected-self-decision' -H 'Content-Type: application/json' -X POST "$base/api/purchases/$id/decision" --data '{"decision":"approved"}'
 echo '8. Restore Alice to member'
 request "$carol" northstar PATCH /api/memberships/alice --data '{"role":"member"}'
 

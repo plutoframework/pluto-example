@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/plutoframework/pluto-example/internal/domain"
+
+	"github.com/plutoframework/pluto-core/pagination"
 )
 
 type CreatePurchaseRequest struct {
@@ -52,16 +54,23 @@ type PurchaseResponse struct {
 	Data Purchase `json:"data"`
 }
 
-type PurchasesResponse struct {
+type PurchaseExportResponse struct {
 	Data []Purchase `json:"data"`
 }
 
+type PurchasesResponse struct {
+	Page pagination.Metadata `json:"page"`
+	Data []Purchase          `json:"data"`
+}
+
 type MembershipsResponse struct {
-	Data []Membership `json:"data"`
+	Page pagination.Metadata `json:"page"`
+	Data []Membership        `json:"data"`
 }
 
 type AuditResponse struct {
-	Data []AuditEvent `json:"data"`
+	Page pagination.Metadata `json:"page"`
+	Data []AuditEvent        `json:"data"`
 }
 
 type FeaturesResponse struct {
