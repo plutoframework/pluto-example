@@ -20,6 +20,7 @@ import (
 	"github.com/plutoframework/pluto-example/internal/config"
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
+	"github.com/plutoframework/pluto-example/internal/operations"
 	"github.com/plutoframework/pluto-example/internal/paths"
 	"github.com/plutoframework/pluto-example/internal/pluto"
 	"github.com/plutoframework/pluto-example/internal/storage/memory"
@@ -35,6 +36,18 @@ type operationSpy struct {
 	ApplicationOperations
 	calls     int
 	principal domain.Principal
+}
+
+func (s *operationSpy) Access(
+	_ context.Context,
+	p domain.Principal,
+) (domain.Access, error) {
+	policy, _ := domain.NewPolicy()
+
+	return (operations.AccessService{Policy: policy}).Access(
+		context.Background(),
+		p,
+	)
 }
 
 func (s *operationSpy) Organization(

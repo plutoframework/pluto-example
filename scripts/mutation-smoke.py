@@ -8,6 +8,14 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 MUTATIONS = [
     (
+        "capability endpoint unknown-role guard removed",
+        "internal/operations/access.go",
+        "s.Policy == nil || !domain.ValidRole(s.Policy, principal.Role)",
+        "s.Policy == nil",
+        "./internal/operations",
+        "TestAccessUsesCompiledPolicy",
+    ),
+    (
         "cached organization permission guard removed",
         "internal/operations/organization.go",
         "if !principal.Can(s.policy, domain.OrganizationRead) {",
@@ -103,7 +111,7 @@ def main():
     for name, filename, before, after, package, test in MUTATIONS:
         with tempfile.TemporaryDirectory(prefix="pluto-mutation-") as temporary:
             checkout = Path(temporary) / "app"
-            shutil.copytree(ROOT, checkout, ignore=shutil.ignore_patterns(".git", ".env", "*.log"))
+            shutil.copytree(ROOT, checkout, ignore=shutil.ignore_patterns(".git", ".env", "*.log", "node_modules", "dist", ".cert", "test-results", "playwright-report"))
             target = checkout / filename
             source = target.read_text()
             if source.count(before) != 1:

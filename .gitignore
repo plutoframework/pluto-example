@@ -2,3 +2,12 @@
 *.log
 .coverage*
 .mutation-results/
+
+web/node_modules/
+web/dist/
+web/.cert/
+web/coverage/
+web/test-results/
+web/playwright-report/
+web/.env*
+!web/.env.example

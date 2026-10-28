@@ -31,6 +31,7 @@ type App struct {
 type applicationServices struct {
 	*operations.Service
 	*operations.OrganizationService
+	operations.AccessService
 }
 
 // New runs only the opt-in local demo. Production integrations are not inferred.
@@ -175,6 +176,7 @@ func NewWithLocal(
 			applicationServices{
 				Service:             service,
 				OrganizationService: organizationService,
+				AccessService:       operations.AccessService{Policy: policy},
 			},
 			policy,
 		),

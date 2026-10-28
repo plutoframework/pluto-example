@@ -13,6 +13,12 @@
       }
     },
     "schemas": {
+      "Access": {
+        "$ref": "./schemas.json#/components/schemas/Access"
+      },
+      "AccessResponse": {
+        "$ref": "./schemas.json#/components/schemas/AccessResponse"
+      },
       "AuditEvent": {
         "$ref": "./schemas.json#/components/schemas/AuditEvent"
       },
@@ -85,6 +91,9 @@
       "ResetInput": {
         "$ref": "./schemas.json#/components/schemas/ResetInput"
       },
+      "RoleOption": {
+        "$ref": "./schemas.json#/components/schemas/RoleOption"
+      },
       "Session": {
         "$ref": "./schemas.json#/components/schemas/Session"
       },
@@ -112,6 +121,49 @@
   },
   "openapi": "3.0.3",
   "paths": {
+    "/api/access": {
+      "get": {
+        "description": "Describe this request's verified role and effective capabilities for UI visibility. Business operations independently enforce authorization.",
+        "operationId": "access.get",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Read active organization capabilities",
+        "x-feature": "",
+        "x-permission": ""
+      }
+    },
     "/api/audit": {
       "get": {
         "description": "Members see their own actions; approvers and administrators see organization history.",

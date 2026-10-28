@@ -1,4 +1,5 @@
 [tools]
+node = "24.22.1"
 golangci-lint = "2.15.0"
 
 [tasks.fmt]
@@ -15,8 +16,20 @@ run = "./scripts/check.sh"
 
 [tasks.test]
 description = "Run the Go test suite"
-run = "go test ./..."
+run = "go test ./cmd/... ./internal/..."
 
 [tasks.worker]
 description = "Run the audit delivery worker using the exported app environment"
 run = "go run ./cmd/worker"
+
+[tasks.web]
+description = "Run the local HTTPS React application"
+run = "npm --prefix web run dev"
+
+[tasks."web:check"]
+description = "Check contracts, architecture, formatting, types, tests and build"
+run = "./scripts/frontend-check.sh"
+
+[tasks."web:fmt"]
+description = "Format frontend source"
+run = "npm --prefix web run fmt"

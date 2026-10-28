@@ -15,3 +15,11 @@ This directory is the application prototype. Do not change sibling `pluto` or `p
 - Run `./scripts/check.sh` after changes. For policy/decoding changes, also run the bounded fuzz and mutation commands in README. SQL integration requires an isolated dedicated test database or the disposable Docker script; do not represent a skip as a pass.
 - Regenerate sqlc and OpenAPI artifacts with the pinned commands in README. Inspect generated diffs. Add focused behavior tests with independent expectations; avoid test placeholders or tests that merely mirror implementation.
 - Do not log credentials or bodies. Keep all fixtures original/synthetic. Demo authentication must remain explicitly opt-in and bound to loopback.
+
+The React application lives in web/. Read web/AGENTS.md and web/README.md first.
+Backend package checks target ./cmd/... ./internal/... so Go never executes Go
+files bundled inside frontend dependencies. Do not scan web/node_modules.
+The 1,000-line source ceiling includes generated API TypeScript. Only
+web/package-lock.json is exempt as machine-owned dependency resolution data;
+retain its standard format and use npm tooling instead of reading it wholesale.
+Dependencies, binary resources and compiled bundles are outside source limits.

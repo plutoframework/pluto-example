@@ -1,6 +1,56 @@
 {
   "components": {
     "schemas": {
+      "Access": {
+        "additionalProperties": false,
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "organization_id": {
+            "type": "string"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "role": {
+            "type": "string"
+          },
+          "role_name": {
+            "type": "string"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/RoleOption"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "actor_id",
+          "organization_id",
+          "role",
+          "role_name",
+          "permissions",
+          "roles"
+        ],
+        "type": "object"
+      },
+      "AccessResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Access"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "AuditEvent": {
         "additionalProperties": false,
         "properties": {
@@ -411,6 +461,26 @@
         "required": [
           "token",
           "password"
+        ],
+        "type": "object"
+      },
+      "RoleOption": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description"
         ],
         "type": "object"
       },

@@ -26,6 +26,7 @@ type Endpoint struct {
 func All() []Endpoint {
 	return []Endpoint{
 		GetOrganization,
+		GetAccess,
 		Enroll,
 		RequestVerification,
 		VerifyEmail,

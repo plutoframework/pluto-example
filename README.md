@@ -2,7 +2,15 @@
 
 A runnable Go ergonomics prototype for an organization purchasing API. Northstar Research orders lab equipment; Harbor Studio buys production supplies. Members draft and submit requests, approvers decide requests from colleagues, and administrators manage existing memberships. Audit history follows the same organization boundary.
 
-This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI, auth and RBAC libraries are developed in separate repositories. There is no frontend, production delivery provider, or framework plugin system.
+This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI, auth and RBAC libraries are developed in separate repositories. A React purchasing frontend now lives in [web/](web/README.md). There is no production delivery provider or framework plugin system.
+
+## Review the full-stack application
+
+See [web/README.md](web/README.md) for the HTTPS React application, feature layout,
+contract generation, architecture checks and real API/browser walkthrough. The
+frontend is a convention prototype for review before frontend CLI generators.
+It uses React/TypeScript, Vite, TanStack Router/Query and generated OpenAPI bindings.
+`mise run web` starts its local HTTPS server after `npm --prefix web ci`.
 
 ## Run the local credential walkthrough
 
@@ -104,7 +112,7 @@ Members read their own requests and their own audit actions. Approvers/administr
 
 Successful responses use `{"data": ...}`. Errors use `{"error":{"code":"...","message":"...","request_id":"..."}}`. Statuses: 400 invalid input, 401 unauthenticated, 403 permission/policy or disabled feature, 404 hidden/missing resource, 405 method, 409 stale version/invalid transition, 413 oversized body, 500 unexpected failure. Error text does not reveal database internals.
 
-The server has read/header/write/idle timeouts, a 16 KiB JSON request limit, a 16 KiB header limit, generated request IDs, panic recovery, and global [security headers](internal/pluto/security.go). Gzip is optional and negotiated through Chi's existing compression middleware for JSON. There is no CORS middleware because no cross-origin browser app is implemented. No request body or bearer token is logged. Diagnostic JSON slog records include status and verified endpoint/actor/organization enrichment, including denied feature checks. Log output can fan out to stdout and a file.
+The server has read/header/write/idle timeouts, a 16 KiB JSON request limit, a 16 KiB header limit, generated request IDs, panic recovery, and global [security headers](internal/pluto/security.go). Gzip is optional and negotiated through Chi's existing compression middleware for JSON. The HTTPS frontend uses a same-origin development proxy; there is no wildcard CORS middleware. No request body or bearer token is logged. Diagnostic JSON slog records include status and verified endpoint/actor/organization enrichment, including denied feature checks. Log output can fan out to stdout and a file.
 
 The security policy matches the CLI generator: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `no-store`, a restrictive JSON-API CSP (`default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`), disabled camera/microphone/geolocation permissions, and Helmet-style cross-origin and legacy browser policies. It runs before authentication/recovery so success, denied, malformed, missing-route, method-error and recovered-panic responses retain the headers. [Router tests](internal/app/security_test.go) check that wiring. The authored middleware is the customization point for HTML/docs or embeddable resources. CSP applies to the API document, not a separately hosted UI; CORP does not configure CORS. Set HSTS at the HTTPS terminator after choosing a domain policy; the local HTTP example neither trusts forwarded protocol headers nor enables HSTS/subdomains/preload automatically. Headers do not replace authorization, validation or CSRF defenses for cookie authentication.
 
@@ -171,7 +179,7 @@ mise run lint
 mise run check
 ```
 
-The scripts also work directly (`./scripts/fmt.sh`, `./scripts/golangci.sh run ./...`, `./scripts/check.sh`). They use the pinned version through mise, or an already installed matching golangci-lint binary. Python 3.11+ is required by the scripts; Go itself remains sufficient for `go test ./...`.
+The scripts also work directly (`./scripts/fmt.sh`, `./scripts/golangci.sh run ./...`, `./scripts/check.sh`). They use the pinned version through mise, or an already installed matching golangci-lint binary. Python 3.11+ is required by the scripts; Go itself remains sufficient for `go test ./cmd/... ./internal/...`.
 
 [.golangci.yml](.golangci.yml) defines a focused readability policy:
 
@@ -185,16 +193,16 @@ The scripts also work directly (`./scripts/fmt.sh`, `./scripts/golangci.sh run .
 Additional verification commands:
 
 ```sh
-go test ./...
+go test ./cmd/... ./internal/...
 go vet ./...
-go test -race ./...
+go test -race ./cmd/... ./internal/...
 go test ./internal/operations -run '^$' -fuzz '^FuzzDecisionPolicy$' -fuzztime=3s -parallel=2
 go test ./internal/pluto -run '^$' -fuzz '^FuzzDecodePurchase$' -fuzztime=3s -parallel=2
 python3 scripts/mutation-smoke.py
 go run ./cmd/openapi -check
 ```
 
-Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes ten meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all ten are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
+Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes eleven meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all eleven are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
 
 Regenerate the two committed artifacts reproducibly:
 

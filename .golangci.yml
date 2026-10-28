@@ -25,6 +25,8 @@ linters:
         - after-block
         - after-expr
   exclusions:
+    paths:
+      - ^web/
     # sqlc output is regenerated, not hand-formatted. It still compiles, runs
     # through tests/vet, and is subject to the project's 1,000-line ceiling.
     generated: strict
@@ -50,6 +52,8 @@ formatters:
       shorten-comments: false
   exclusions:
     generated: strict
+    paths:
+      - ^web/
 
 issues:
   max-issues-per-linter: 0

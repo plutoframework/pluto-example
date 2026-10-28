@@ -28,7 +28,7 @@ func TestArchitecture(t *testing.T) {
 			}
 
 			if entry.IsDir() {
-				if entry.Name() == ".git" {
+				if entry.Name() == ".git" || entry.Name() == "web" {
 					return filepath.SkipDir
 				}
 

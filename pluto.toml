@@ -17,3 +17,9 @@ queries = "sqlc"
 [development]
 local_store = "postgres"
 local_credentials = true
+
+[frontend]
+framework = "react"
+directory = "web"
+router = "tanstack"
+package_manager = "npm"

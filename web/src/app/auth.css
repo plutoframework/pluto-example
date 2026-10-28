@@ -1,0 +1,149 @@
+.auth-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+.auth-story {
+  background: var(--ink);
+  color: #f5f0df;
+  padding: 48px 60px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.auth-story .brand {
+  align-self: flex-start;
+}
+.auth-copy {
+  margin: auto 0;
+  padding: 70px 0;
+  position: relative;
+  z-index: 1;
+}
+.auth-copy .eyebrow {
+  color: #b6bda7;
+  font-size: 10px;
+}
+.auth-copy h1 {
+  font-size: clamp(52px, 5.5vw, 82px);
+  font-weight: 450;
+  line-height: 1.05;
+  letter-spacing: -3px;
+  margin: 23px 0;
+}
+.auth-copy h1 em {
+  font-style: normal;
+  color: #d7a16a;
+}
+.auth-copy p {
+  color: #b1c2b0;
+  font-size: 14px;
+  max-width: 300px;
+}
+.auth-footer {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #9eb49e;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  z-index: 1;
+}
+.orbital-art {
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  right: -275px;
+  top: 33%;
+  transform: rotate(-38deg);
+  opacity: 0.5;
+}
+.orbital-art span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #839886;
+  border-radius: 50%;
+}
+.orbital-art span:nth-child(2) {
+  inset: 40px -60px;
+}
+.orbital-art span:nth-child(3) {
+  inset: 90px -100px;
+}
+.orbital-art i {
+  position: absolute;
+  height: 15px;
+  width: 15px;
+  background: #c49160;
+  border-radius: 50%;
+  top: 78px;
+  left: 45px;
+  box-shadow: 0 0 0 9px #b78a5e1a;
+}
+.auth-panel {
+  display: grid;
+  place-items: center;
+  padding: 45px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 360px;
+}
+.auth-card > .eyebrow {
+  color: #8b947d;
+  font-size: 10px;
+}
+.auth-card > h2 {
+  font-size: 36px;
+  font-weight: 450;
+  margin: 15px 0 10px;
+}
+.auth-card > p {
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.auth-card .button {
+  font-size: 14px;
+  justify-content: space-between;
+  padding: 14px 18px;
+}
+.auth-card label {
+  font-size: 13px;
+}
+.auth-card input {
+  background: #fffef9;
+  font-size: 15px;
+}
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 24px;
+}
+.auth-links button {
+  font-size: 11px;
+  background: none;
+  border: 0;
+  color: #76836c;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.local-note {
+  border-top: 1px solid #dde1cf;
+  margin-top: 35px;
+  padding-top: 22px;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: #89947b;
+}
+.local-note .signal-dot {
+  margin-right: 7px;
+}
+.local-note p {
+  font-size: 11px;
+  letter-spacing: 0;
+  margin: 9px 0 0;
+  line-height: 1.9;
+}
