@@ -4,6 +4,7 @@ Read README.md and the root API contracts first. This is a reviewable full-stack
 example, not a frontend generator or a general component library.
 
 - HeroUI v3 is the saved component library. Import its controls directly, use its compound components and theme CSS variables, and preserve the pinned profile. Do not restore parallel handwritten button, dialog or select implementations.
+- Preserve HeroUI's default dark appearance and blue accent. Application CSS arranges content; do not reskin library controls with the earlier paper/navy/copper palette. Use secondary field variants inside cards and modals for visible contrast.
 - React + TypeScript + Vite; TanStack Router owns URL state and TanStack Query owns server state. Keep transient visual state local and form state inside forms. Do not copy query records into global stores or persist auth/tenant state in browser storage.
 - app/ composes the router/providers/shell. features/<name>/ owns pages, components, forms, queries, mutations and types. shared/ui receives props/callbacks. Cross-feature imports must go through that feature's public.ts; shared cannot depend on features.
 - Pages assemble screens and call feature hooks. Components/forms never import the HTTP client or generated bindings. Only feature queries.ts/mutations.ts import api/client.ts. Never fetch data in component effects or add another HTTP library.

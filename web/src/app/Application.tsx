@@ -27,7 +27,10 @@ function WorkspaceContent() {
           value={session?.actor_id ?? ""}
         >
           <Label>Your account ID</Label>
-          <Input onFocus={(event) => event.currentTarget.select()} />
+          <Input
+            variant="secondary"
+            onFocus={(event) => event.currentTarget.select()}
+          />
         </TextField>
         <Button variant="outline" onClick={refresh}>
           Refresh session

@@ -36,6 +36,7 @@ export function MemberRow({
       </Table.Cell>
       <Table.Cell>
         <Select
+          variant="secondary"
           aria-label={`Role for ${member.display_name}`}
           value={role}
           isDisabled={self || pending}

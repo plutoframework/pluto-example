@@ -68,17 +68,17 @@ export function PurchaseListPage() {
         }
       />
       <div className="overview-strip">
-        <div>
+        <Card>
           <span className="eyebrow">AWAITING REVIEW</span>
           <strong>{submitted.toString().padStart(2, "0")}</strong>
           <span>Ready for a considered decision</span>
-        </div>
-        <div>
+        </Card>
+        <Card>
           <span className="eyebrow">IN DRAFT</span>
           <strong>{drafts.toString().padStart(2, "0")}</strong>
           <span>Good ideas taking shape</span>
-        </div>
-        <div className="overview-value">
+        </Card>
+        <Card className="overview-value">
           <span className="eyebrow">VALUE ON THIS PAGE</span>
           <strong>
             {money(
@@ -86,7 +86,7 @@ export function PurchaseListPage() {
             )}
           </strong>
           <span>USD · {records.length} visible records loaded</span>
-        </div>
+        </Card>
       </div>
       <Card className="panel">
         <div className="panel-heading">
@@ -136,9 +136,10 @@ export function PurchaseListPage() {
               });
             }}
           >
-            <Input placeholder="Search this page…" />
+            <Input variant="secondary" placeholder="Search this page…" />
           </SearchField>
           <Select
+            variant="secondary"
             aria-label="Filter status on this page"
             className="filter-select"
             value={search.status ?? "all"}

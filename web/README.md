@@ -89,8 +89,10 @@ Vite plugin 4.3.3, with the resolved graph in package-lock.json.
 
 HeroUI provides buttons, text/search fields, selects/listboxes, purchase/member
 tables, status chips, avatars, cards, alerts, spinners and the create-request modal.
-The paper/navy/copper theme is defined through HeroUI CSS variables in
-src/app/heroui.css. Components import HeroUI directly; feature data/policy logic
+HeroUI supplies its default dark palette, rounded controls and blue accent.
+The dark theme is selected on the document root, including portalled overlays.
+Application CSS handles layout and spacing; src/app/heroui.css does not reskin
+HeroUI controls. Components import HeroUI directly; feature data/policy logic
 stays in its existing modules. There is no second generic Pluto control API.
 
 This example retains its original hand-authored schema-1 prototype manifest and

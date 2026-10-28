@@ -2,13 +2,6 @@
   .main-content {
     padding-top: 60px;
   }
-  table {
-    font-size: 14px;
-  }
-  td {
-    padding-top: 24px;
-    padding-bottom: 24px;
-  }
   .record-title {
     font-size: 15px;
   }
@@ -33,7 +26,7 @@
     width: 100%;
     justify-content: flex-end;
   }
-  .overview-strip > div {
+  .overview-strip > .card {
     padding: 22px 17px;
   }
   .overview-strip strong {
@@ -132,15 +125,13 @@
   }
   .overview-strip .overview-value {
     grid-column: 1 / -1;
-    border-top: 1px solid var(--line);
   }
-  .overview-strip > div:nth-child(2) {
-    border-right: 0;
+  .overview-strip > .card:nth-child(2) {
   }
   .overview-strip strong {
     font-size: 32px;
   }
-  .overview-strip > div {
+  .overview-strip > .card {
     padding: 19px 20px;
   }
   .overview-strip .eyebrow {
@@ -149,6 +140,10 @@
   .panel-heading {
     padding: 20px;
     align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .panel-heading > div {
+    flex: 1 1 180px;
   }
   .panel-heading p {
     font-size: 11px;
@@ -244,7 +239,10 @@
     top: 0;
   }
   .auth-panel {
-    padding: 35px 24px;
+    padding: 28px 20px;
+  }
+  .auth-card.card {
+    padding: 24px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

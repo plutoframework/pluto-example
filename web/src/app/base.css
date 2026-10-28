@@ -4,23 +4,12 @@
   font-weight: 200 800;
   font-display: swap;
 }
-@font-face {
-  font-family: Bricolage;
-  src: url("/fonts/bricolage-grotesque.ttf") format("truetype");
-  font-weight: 200 800;
-  font-display: swap;
-}
 :root {
   font-family: Manrope, sans-serif;
-  color: #263b43;
-  background: #f5f3ed;
+  color: var(--foreground);
+  background: var(--background);
   font-synthesis: none;
-  --ink: #192e38;
-  --muted: #697774;
-  --line: #e4e5db;
-  --paper: #f5f3ed;
-  --brand-copper: #c8834f;
-  --green: #34765b;
+  --line: var(--separator);
 }
 * {
   box-sizing: border-box;
@@ -47,18 +36,8 @@ a {
 a {
   color: inherit;
 }
-button {
-  cursor: pointer;
-}
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 2px solid #b8723b;
+a:focus-visible {
+  outline: 2px solid var(--focus);
   outline-offset: 4px;
 }
 h1,
@@ -67,24 +46,19 @@ h3,
 p {
   margin-top: 0;
 }
-h1,
-h2,
-h3 {
-  font-family: Bricolage, sans-serif;
-}
 h1 {
-  font-size: clamp(30px, 3vw, 43px);
-  font-weight: 550;
-  letter-spacing: -1.7px;
-  line-height: 1.1;
+  font-size: clamp(30px, 3vw, 42px);
+  font-weight: 650;
+  letter-spacing: -1.6px;
+  line-height: 1.15;
 }
 h2 {
   font-size: 20px;
-  font-weight: 550;
+  font-weight: 600;
   letter-spacing: -0.5px;
 }
 p {
-  line-height: 1.75;
+  line-height: 1.7;
 }
 .muted {
   color: var(--muted);
@@ -96,8 +70,8 @@ code {
 }
 .eyebrow {
   font-size: 11px;
-  letter-spacing: 1.65px;
-  font-weight: 750;
+  letter-spacing: 1.4px;
+  font-weight: 650;
 }
 .sr-only {
   position: absolute;

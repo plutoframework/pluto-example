@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { useState } from "react";
 import { OrbitMark } from "@/shared/ui/icons";
 import { Notice } from "@/shared/ui/feedback";
@@ -45,7 +45,7 @@ export function AuthPage() {
         </div>
       </section>
       <section className="auth-panel">
-        <div className="auth-card">
+        <Card className="auth-card">
           <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
           <h2>{modeLabels[mode]}</h2>
           <p className="muted">A secure session. A shared purpose.</p>
@@ -105,7 +105,7 @@ export function AuthPage() {
               . New accounts start without organization access.
             </p>
           </div>
-        </div>
+        </Card>
       </section>
     </main>
   );

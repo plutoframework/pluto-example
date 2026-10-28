@@ -54,7 +54,11 @@ export function CreatePurchaseForm({
         maxLength={160}
       >
         <Label>What does your team need?</Label>
-        <Input placeholder="e.g. Field research equipment" autoFocus />
+        <Input
+          variant="secondary"
+          placeholder="e.g. Field research equipment"
+          autoFocus
+        />
       </TextField>
       <TextField
         name="amount"
@@ -65,7 +69,7 @@ export function CreatePurchaseForm({
         inputMode="decimal"
       >
         <Label>Estimated cost (USD)</Label>
-        <Input placeholder="0.00" />
+        <Input variant="secondary" placeholder="0.00" />
         <Description>
           A draft first. Submit it when you are ready for review.
         </Description>

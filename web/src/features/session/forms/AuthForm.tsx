@@ -90,7 +90,7 @@ export function AuthForm({
           autoComplete={field.autoComplete}
         >
           <Label>{field.label}</Label>
-          <Input />
+          <Input variant="secondary" />
         </TextField>
       ))}
       {!hasEmail && (

@@ -70,6 +70,13 @@ async function login(name) {
 async function screenshot(name) {
   await page.locator(".loading").waitFor({ state: "hidden" });
   await page.evaluate(() => document.fonts.ready);
+  // Paint below-the-fold scrollports after resizing before a full-page capture.
+  const table = page.locator(".table__content").first();
+  if (await table.count()) {
+    await table.scrollIntoViewIfNeeded();
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
   await page.screenshot({
     path: `${evidence}/${name}.png`,
     animations: "disabled",
