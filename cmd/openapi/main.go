@@ -24,7 +24,7 @@ func main() {
 		"info": map[string]any{
 			"title":       "Organization Purchasing Example",
 			"version":     "0.1.0",
-			"description": "Local prototype using Pluto sessions; demo credentials only bootstrap sessions. Business validation remains in operations.",
+			"description": "Local password lifecycle with separate trusted development membership provisioning.",
 		},
 		"servers": []any{map[string]any{"url": "http://127.0.0.1:8080"}},
 		"components": map[string]any{
@@ -37,12 +37,7 @@ func main() {
 				"bearerAuth": map[string]any{
 					"type":        "http",
 					"scheme":      "bearer",
-					"description": "Opaque Pluto session token; never the demo bootstrap credential.",
-				},
-				"demoCredential": map[string]any{
-					"type":        "http",
-					"scheme":      "bearer",
-					"description": "Local fixture credential, accepted only by POST /auth/session.",
+					"description": "Opaque Pluto session token.",
 				},
 			},
 			"schemas": schemas.Components,
@@ -136,20 +131,11 @@ func main() {
 			}
 		}
 
-		if endpoint.ID == paths.CreateSession.ID {
-			operation["security"] = []any{
-				map[string]any{"demoCredential": []string{}},
-			}
-
-			parameters = append(
-				parameters,
-				map[string]any{
-					"name":     "Origin",
-					"in":       "header",
-					"required": true,
-					"schema":   map[string]any{"type": "string"},
-				},
-			)
+		if strings.HasPrefix(endpoint.ID, "credentials.") {
+			parameters = append(parameters, map[string]any{
+				"name": "Origin", "in": "header", "required": true,
+				"schema": map[string]any{"type": "string"},
+			})
 			operation["parameters"] = parameters
 		}
 
@@ -161,6 +147,13 @@ func main() {
 		}
 		responses["default"] = map[string]any{
 			"$ref": "#/components/responses/Error",
+		}
+
+		if strings.HasPrefix(endpoint.ID, "credentials.") {
+			responses["default"] = response(
+				"Opaque authentication code; no credential or challenge data.",
+				schemas.Reference(api.AuthResult{}),
+			)
 		}
 
 		operation["responses"] = responses
@@ -196,8 +189,28 @@ func main() {
 
 	document["components"].(map[string]any)["schemas"] = references
 
+	authRoutes := map[string]any{}
+
+	for path, item := range routes {
+		if strings.HasPrefix(path, "/auth/") && path != "/auth/session" {
+			authRoutes[path] = item
+			pointer := strings.ReplaceAll(
+				strings.ReplaceAll(path, "~", "~0"),
+				"/",
+				"~1",
+			)
+			routes[path] = map[string]any{
+				"$ref": "./auth.json#/paths/" + pointer,
+			}
+		}
+	}
+
 	artifacts := map[string]any{
 		"openapi/openapi.json": document,
+		"openapi/auth.json": map[string]any{
+			"paths":      authRoutes,
+			"components": document["components"],
+		},
 		"openapi/schemas.json": map[string]any{
 			"components": map[string]any{"schemas": schemas.Components},
 		},

@@ -25,7 +25,13 @@ type Endpoint struct {
 
 func All() []Endpoint {
 	return []Endpoint{
-		CreateSession,
+		Enroll,
+		RequestVerification,
+		VerifyEmail,
+		SignIn,
+		RequestRecovery,
+		ResetPassword,
+		Logout,
 		GetSession,
 		DeleteSession,
 		CreatePurchase,

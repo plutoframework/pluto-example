@@ -2,59 +2,86 @@
 
 A runnable Go ergonomics prototype for an organization purchasing API. Northstar Research orders lab equipment; Harbor Studio buys production supplies. Members draft and submit requests, approvers decide requests from colleagues, and administrators manage existing memberships. Audit history follows the same organization boundary.
 
-This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI, auth and RBAC libraries are developed in separate repositories. There is no frontend, CLI, production identity provider, or framework plugin system.
+This is original synthetic application code, intended for review before extracting a framework. `internal/pluto` holds provisional HTTP helpers. The framework, CLI, auth and RBAC libraries are developed in separate repositories. There is no frontend, production delivery provider, or framework plugin system.
 
-## Run in two terminals
+## Run the local credential walkthrough
 
-Requires Go 1.25+; memory mode needs no database, container, or external service.
-
-```sh
-git clone https://github.com/plutoframework/pluto-example.git
-cd pluto-example
-PLUTO_EXAMPLE_DEMO_AUTH=true \
-PLUTO_EXAMPLE_FEATURE_PURCHASE_EXPORT=true \
-go run ./cmd/api
-```
-
-Then run the guided sequence:
+Requires Go 1.25.5+, Python 3 and Docker. This example is explicitly development
+only: startup requires DEMO_AUTH=true, a numeric loopback listener and PostgreSQL.
+There is no credential memory fallback or startup DDL. Memory repositories remain
+available for isolated business tests.
 
 ```sh
+docker compose -p pluto-example up -d --wait
+set -a; . ./.env.example; set +a
+PLUTO_EXAMPLE_FEATURE_PURCHASE_EXPORT=true go run ./cmd/api
+# Another terminal, with the same exported .env.example settings:
 ./scripts/demo.sh
+# Stop the API, then discard both database and Mailpit:
+docker compose -p pluto-example down
 ```
 
-It creates a draft, submits it as Alice, approves it as Bob, checks Harbor's isolation, reads personal and organization audit history, exports JSON, and changes Alice's role as Carol. Memory state resets when the process restarts. The script prints the generated request ID and curl output, including expected failure cases. Re-running uses new request IDs and restores Alice to member at the end.
+Use a **fresh disposable database and Mailpit** for each walkthrough. The script
+generates random passwords in memory, enrolls synthetic alice/bob/carol/dana at
+example.test, denies unverified sign-in, consumes emailed verification challenges,
+signs in and proves that all four initially lack business access. It obtains
+account IDs from authenticated session metadata, then explicitly invokes
+`go run ./cmd/dev-fixtures --alice-id ... --bob-id ... --carol-id ... --dana-id ...`.
+This trusted developer command requires all four verified/enabled synthetic account
+IDs, inserts fixture memberships plus audit records in one transaction, and never
+runs from HTTP, enrollment, email matching or startup. It grants Alice member in
+Northstar/Harbor, Bob Northstar approver, Carol Northstar administrator and Dana
+Harbor administrator. Do not use this fixture administration in production.
 
-For individual requests, use [requests.http](requests.http). The generated [OpenAPI document](openapi/openapi.json) can be opened in an OpenAPI viewer; the server does not host a documentation UI.
+The walkthrough submits/approves a purchase, checks isolation, audit, flags and
+role policy, then exercises recovery/reset, old-session/password rejection,
+reauthentication and logout. Passwords, cookies and challenges are not printed or
+written to disk. Only the disposable Mailpit capture holds raw message contents;
+it retains at most 100 messages in process memory, with no mounted storage.
+Discard it afterwards. Mailpit has no relay configuration. Its UI is loopback
+http://127.0.0.1:8025. No real recipients or external delivery are used.
 
-Demo authentication is **off by default** and startup fails until explicitly enabled. It only permits a numeric loopback bind. Demo credentials are exchanged at POST /auth/session for opaque Pluto sessions; those sessions select verified subjects; `X-Organization-ID` selects an organization only after membership lookup. Arbitrary identity/role headers and organization fields in purchase bodies do not grant access.
+[requests.http](requests.http) shows individual requests. The
+[OpenAPI document](openapi/openapi.json) references [auth paths](openapi/auth.json)
+and [wire schemas](openapi/schemas.json). Named endpoint metadata remains in
+`internal/paths`; local credentials use the published `passwordhttp` adapter.
 
-| Actor | Token | Organization and initial role |
-| --- | --- | --- |
-| Alice | `demo_alice_mJ7Kq9vL2xR8` | Northstar member; Harbor member |
-| Bob | `demo_bob_tW4nC6yP1sF3` | Northstar approver |
-| Carol | `demo_carol_hG8dA5uZ9eQ2` | Northstar administrator |
-| Dana | `demo_dana_bN6rV3kT7jS4` | Harbor administrator |
+POST /auth/enroll, /verification, /verify, /signin, /recovery, /reset and /logout
+use exact trusted Origin validation and bounded 8 KiB JSON. Responses contain only
+an opaque code. Enrollment/verification-resend/recovery accept with 202 without
+revealing eligibility; delivery failures also accept and emit a redacted warning.
+Request an explicit resend to replace the challenge; duplicate enrollment never
+resends or changes a password. GET never consumes a challenge. Sign-in sets a
+Secure, HttpOnly, SameSite=Lax, host-only __Host-pluto_session cookie; browsers need
+HTTPS. The Python walkthrough explicitly sends the cookie for local HTTP. Reset
+requires a new sign-in and revokes existing sessions. No token appears in JSON.
 
-These are local demo bootstrap credentials, accepted only by POST /auth/session.
-They cannot authenticate business endpoints directly. The endpoint requires an
-allowlisted Origin and returns a Secure, HttpOnly __Host-pluto_session cookie;
-response JSON contains metadata only. Session cookies require HTTPS in browsers.
-The loopback-only demo script explicitly sends Cookie and Origin headers for its
-local HTTP walkthrough. Production credential verification is not implemented.
+GET /auth/session and DELETE /auth/session retain session-only metadata/revocation
+compatibility without requiring a tenant. Opaque bearer sessions remain opt-in in
+transport wiring; mixed cookie/Authorization credentials fail. Anonymous lifecycle
+routes mount before business tenancy/RBAC and never enter idempotency capture.
+All local sessions use `service.Sessions()` against the SAME `postgres.NewLocal`
+backend; do not issue/rotate local accounts with the session-only store or Start.
+Auth accounts own no application profile, roles or memberships. Fresh unknown
+accounts receive no business privileges, even with a matching display name/email.
 
-Pluto Auth is pinned in go.mod/go.sum without sibling replacements. Memory mode
-uses its bounded memory session store; Postgres mode uses its published pgx/sqlc
-store and the explicit 002_auth_sessions.sql migration. Cookie writes require a
-trusted Origin. Opt-in opaque bearer credentials are also supported; mixed cookie
-and Authorization credentials are rejected. GET /auth/session returns metadata;
-DELETE /auth/session revokes the server record before clearing the cookie, without
-requiring organization membership. Existing business permissions, tenant lookup,
-feature gates and transactional audit boundaries remain separate.
+The development sender uses stdlib SMTP only to a numeric loopback sink and only
+example.test recipients. TLS/AUTH are intentionally absent on this disposable
+connection; its dial/I/O/cancellation budget is three seconds. This is not a
+production SMTP adapter. `auth.LocalDependencies` exposes a real context-aware
+Sender, AttemptLimiter, HTTP Ingress, optional PasswordPolicy and redacted failure
+hook. Production requires explicit delivery with fixed trusted HTTPS confirmation
+URLs (prefer token fragments), TLS/auth/timeouts, a maintained password blocklist
+when required, shared identifier/client limits, TLS/database privileges, account
+retention and scheduled session/challenge pruning. Never use request Host/return
+URLs or persist raw tokens in an outbox. No production integration is claimed.
 
-Auth environment settings are AUTH_TRUSTED_ORIGINS (comma-separated exact
-origins), AUTH_SESSION_TTL (default 24h), and AUTH_IDLE_TIMEOUT (default 30m), all
-with the PLUTO_EXAMPLE_ prefix. Browser deployments need HTTPS and explicitly
-configured CORS/proxy trust; the example remains opt-in loopback demo only.
+The local ingress ignores X-Forwarded-For, admits only the direct loopback socket
+peer, bounds 120 requests/minute per peer and four concurrent requests with no
+queue, and supplies a ten-second context. Account limits are bounded, process-local
+20/minute per operation/identifier. Neither is suitable for a proxy deployment or
+multiple replicas; implement trusted/shared enforcement there. Active Argon2 work
+cannot be interrupted; queueing and downstream work honor cancellation.
 
 ## Read the code in this order
 
@@ -84,7 +111,7 @@ Audit events are an explicit business API containing event identity, actor, orga
 ## Authorization
 
 The example imports the published `github.com/plutoframework/pluto-rbac` module,
-pinned to `v0.0.0-20261027065629-25c44e7fe21b` in go.mod/go.sum. There is no local
+pinned to `v0.1.0` in go.mod/go.sum. There is no local
 replacement or dependency on a sibling checkout. [The application catalog](internal/domain/catalog.go)
 uses the library's permission/role types: members have base capabilities,
 approvers inherit members, and administrators inherit approvers.
@@ -110,37 +137,25 @@ integration does not imply transactional authorization/revocation guarantees.
 
 Only uppercase `PLUTO_EXAMPLE_` names are used. Defaults plus environment are supported; no runtime config-file loader is implied. Unknown variables are ignored; invalid values for recognized booleans, addresses, modes, and log levels fail startup. Feature settings preserve unset versus false with `*bool`. Export defaults to false and requires restart after a setting change. Server timeout/body/header defaults are set explicitly in configuration/code; only address and gzip have environment overrides in this sample.
 
-## Optional PostgreSQL path
+## PostgreSQL migrations and persisted tests
 
-Requires a running Docker daemon. The compose project uses only a dedicated local container, loopback port 55432, and no persistent volume. It applies the migration and synthetic fixture file on container initialization.
-
-```sh
-docker compose -p pluto-example up -d --wait
-PLUTO_EXAMPLE_DEMO_AUTH=true \
-PLUTO_EXAMPLE_DATABASE_MODE=postgres \
-PLUTO_EXAMPLE_DATABASE_URL='postgres://pluto_demo:local_only@127.0.0.1:55432/pluto_demo?sslmode=disable' \
-PLUTO_EXAMPLE_FEATURE_PURCHASE_EXPORT=true \
-go run ./cmd/api
-# When finished:
-docker compose -p pluto-example down
-```
-
-Alternatively, apply [001_initial.sql](db/migrations/001_initial.sql), [002_auth_sessions.sql](db/migrations/002_auth_sessions.sql), and [fixtures.sql](db/fixtures.sql) once to a new dedicated PostgreSQL database. There is no production migration runner or generic interchangeable database abstraction.
-
-For the SQL integration check, use the disposable-container script. It allocates a dynamic loopback port and deletes its own container on exit:
+Compose initializes a new disposable database with migrations 001 through 004 and
+synthetic domain fixtures. Existing databases must explicitly apply
+[004_local_credentials.sql](db/migrations/004_local_credentials.sql) **after**
+001_initial, 002_auth_sessions and 003_idempotency. It adds accounts, digest-only
+challenges and versioned session bindings without changing existing session-only
+rows. No constructor performs DDL. Do not apply fixtures to a production database.
+Runtime users should have DML privileges separately from migration owners.
 
 ```sh
 ./scripts/postgres-check.sh
 ```
 
-With an existing **dedicated test database**, an alternative is:
-
-```sh
-PLUTO_EXAMPLE_TEST_DATABASE_URL='postgres://user:password@127.0.0.1:5432/test_database?sslmode=disable' \
-go test -race -count=1 ./internal/storage/postgres -run TestPostgres -v
-```
-
-The test creates a random isolated schema, applies migration/fixtures there, and drops only that schema. It exercises real SQL tenant predicates, failed-audit rollback of creates/transitions/roles, and concurrent optimistic writes. Without the test URL, it reports `SKIP`; in-memory tests are not evidence for SQL isolation.
+This script creates PostgreSQL on a dynamic loopback port and removes its container
+on exit. Tests create/drop only random isolated schemas. It runs persisted domain,
+audit/rollback/concurrency, session compatibility and complete application HTTP
+credential tests under the race detector. Without a dedicated
+PLUTO_EXAMPLE_TEST_DATABASE_URL those tests report SKIP, not SQL evidence.
 
 ## Repeatable checks
 
@@ -177,7 +192,7 @@ python3 scripts/mutation-smoke.py
 go run ./cmd/openapi -check
 ```
 
-Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes six meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all six are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
+Native fuzz tests assert policy/no-write invariants and bounded exact-key JSON decoding, rather than only checking for panics. [Seeded mutation smoke](scripts/mutation-smoke.py) removes eight meaningful guards in temporary copies and independently runs the relevant behavior tests. It reports killed, surviving, invalid/build-failed, and timed-out mutations separately and fails unless all eight are killed. This is a small reproducible smoke check, not comprehensive mutation coverage or a general mutation engine. Expand real mutation tooling once the framework surface stabilizes; CRAP metrics are deferred.
 
 Regenerate the two committed artifacts reproducibly:
 
@@ -192,7 +207,7 @@ The architecture test walks source imports transitively, rejects handler access 
 
 ## Prototype limits and review questions
 
-Collections use bounded cursor pages; the separate export remains unpaginated and is not streaming. There is no production credential provider, browser UI, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
+Collections use bounded cursor pages; the separate export remains unpaginated and is not streaming. There is no production delivery/shared-limit integration, browser UI, monetary currency model, attachment workflow, budget/approval threshold, or distributed feature service. Authorization uses membership at request start; concurrent role revocation may race an already authorized write. SQL tenant isolation uses explicit predicates/composite keys rather than PostgreSQL row-level security. Production deployment needs its own identity, migration, concurrency, and operational decisions.
 
 The useful review questions are whether endpoint/schema declarations remain pleasant to author, whether these narrow operation/repository boundaries are the right extraction point, and whether role changes should eventually enforce an organization-wide last-administrator invariant. No framework API is declared stable by this example.
 
@@ -216,12 +231,12 @@ action and reuse it for retries. The request demo supplies action keys on the
 client. Same subject/organization/operation/key and exact fingerprint replays
 status/body; changed request or pending outcome returns 409. Authentication,
 current membership/RBAC and feature gates run before every replay. Sessions and
-loopback credential bootstrap are exempt and never cache cookies or credentials.
+credential lifecycle routes are exempt and never cache cookies or credentials.
 Only Content-Type is retained with bounded JSON bytes/status; global security
 headers remain current. Body limit stays 16 KiB; recorded response limit 256 KiB.
 
-Memory mode is explicitly local demo only, bounded to 1,000 claims and reset on
-restart; it cannot deduplicate across instances. PostgreSQL uses the separate
+Memory test adapters are process-local and cannot deduplicate across instances.
+The runnable example uses PostgreSQL with the separate
 published Core adapter and explicit db/migrations/003_idempotency.sql. Apply this
 to existing databases; no startup DDL. Completed retention is 24h from claim;
 expired completed keys can execute again. Schedule adapter.PruneCompleted from

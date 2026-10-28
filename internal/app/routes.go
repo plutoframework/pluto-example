@@ -13,6 +13,7 @@ import (
 	"github.com/plutoframework/pluto-example/internal/handlers/memberships"
 	"github.com/plutoframework/pluto-example/internal/handlers/purchases"
 	sessionhandlers "github.com/plutoframework/pluto-example/internal/handlers/sessions"
+	"github.com/plutoframework/pluto-example/internal/paths"
 	"github.com/plutoframework/pluto-example/internal/pluto"
 
 	"github.com/go-chi/chi/v5"
@@ -29,6 +30,7 @@ type ApplicationOperations interface {
 }
 
 type SessionAuthentication struct {
+	Credentials http.Handler
 	Idempotency *httpidem.Handler
 	Resolver    auth.Authenticator
 	HTTP        *httpauth.Transport
@@ -72,6 +74,14 @@ func Routes(
 			})
 		},
 	)
+
+	// Lifecycle routes run before tenant/membership and idempotency middleware.
+	if authentication.Credentials != nil {
+		for _, endpoint := range paths.LocalCredentials() {
+			router.Method(endpoint.Method, endpoint.Path,
+				http.StripPrefix("/auth", authentication.Credentials))
+		}
+	}
 
 	registrar := pluto.NewRegistrar(
 		router,

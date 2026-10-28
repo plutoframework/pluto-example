@@ -35,11 +35,12 @@ func LoadFrom(lookup Lookup) (Config, error) {
 			MaxBodyBytes: 16 * 1024,
 			Gzip:         true,
 		},
-		Database: DatabaseConfig{Mode: "memory"},
+		Database: DatabaseConfig{Mode: "postgres"},
 		Auth: AuthConfig{
-			TrustedOrigins: []string{"http://127.0.0.1:8080"},
-			SessionTTL:     24 * time.Hour,
-			IdleTimeout:    30 * time.Minute,
+			DevelopmentSMTP: "127.0.0.1:1025",
+			TrustedOrigins:  []string{"http://127.0.0.1:8080"},
+			SessionTTL:      24 * time.Hour,
+			IdleTimeout:     30 * time.Minute,
 		},
 		Logging: LoggingConfig{
 			Level:  "info",
@@ -54,6 +55,7 @@ func LoadFrom(lookup Lookup) (Config, error) {
 	text("SERVER_ADDRESS", &config.Server.Address)
 	text("DATABASE_MODE", &config.Database.Mode)
 	text("DATABASE_URL", &config.Database.URL)
+	text("AUTH_DEVELOPMENT_SMTP", &config.Auth.DevelopmentSMTP)
 	text("LOG_LEVEL", &config.Logging.Level)
 	text("LOG_FILE", &config.Logging.File)
 
@@ -161,8 +163,8 @@ func (c Config) Validate() error {
 		)
 	}
 
-	if c.Database.Mode != "memory" && c.Database.Mode != "postgres" {
-		return fmt.Errorf("DATABASE_MODE must be memory or postgres")
+	if c.Database.Mode != "postgres" {
+		return fmt.Errorf("local credentials require DATABASE_MODE=postgres")
 	}
 
 	if c.Database.Mode == "postgres" &&

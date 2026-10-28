@@ -1,11 +1,69 @@
-# First POST /auth/session with Origin: http://127.0.0.1:8080 and a demo
-# credential in Authorization. Copy the opaque token from Set-Cookie into the
-# actor variables below. Business routes never accept bootstrap credentials.
 @base = http://127.0.0.1:8080
 @alice = PASTE_ALICE_SESSION_TOKEN
 @bob = PASTE_BOB_SESSION_TOKEN
 @carol = PASTE_CAROL_SESSION_TOKEN
 @purchaseID = replace-with-created-id
+@aliceAccountID = replace-with-verified-account-id
+@email = alice@example.test
+@password = REPLACE_WITH_A_RANDOM_DEVELOPMENT_PASSPHRASE
+@verification = PASTE_TOKEN_FROM_LOOPBACK_MAILPIT
+@recovery = PASTE_RECOVERY_TOKEN_FROM_LOOPBACK_MAILPIT
+
+# Use a disposable database and Mailpit. Never save real credentials in this file.
+# Enroll/verify/signin alone grant NO business membership. Run the trusted
+# cmd/dev-fixtures command with four explicit account IDs as documented in README.
+
+### Enrollment: 202 opaque accepted, challenge delivered only to local Mailpit.
+POST {{base}}/auth/enroll
+Origin: {{base}}
+Content-Type: application/json
+
+{"email":"{{email}}","password":"{{password}}"}
+
+### Explicit verification resend (supersedes previous token)
+POST {{base}}/auth/verification
+Origin: {{base}}
+Content-Type: application/json
+
+{"email":"{{email}}"}
+
+### Explicit POST confirmation; never consumes a token via GET.
+POST {{base}}/auth/verify
+Origin: {{base}}
+Content-Type: application/json
+
+{"token":"{{verification}}"}
+
+### Sign in: copy Set-Cookie value into actor session variable. No JSON token.
+POST {{base}}/auth/signin
+Origin: {{base}}
+Content-Type: application/json
+
+{"email":"{{email}}","password":"{{password}}"}
+
+### Account ID for explicit trusted fixture binding (no tenant required)
+GET {{base}}/auth/session
+Cookie: __Host-pluto_session={{alice}}
+
+### Request recovery (202 regardless of eligibility)
+POST {{base}}/auth/recovery
+Origin: {{base}}
+Content-Type: application/json
+
+{"email":"{{email}}"}
+
+### Reset revokes old sessions; sign in again afterwards.
+POST {{base}}/auth/reset
+Origin: {{base}}
+Content-Type: application/json
+
+{"token":"{{recovery}}","password":"{{password}}"}
+
+### Logout has no business tenant requirement; Origin still required.
+POST {{base}}/auth/logout
+Origin: {{base}}
+Cookie: __Host-pluto_session={{alice}}
+
 
 ### Create a draft (201). Organization comes from verified membership, never body.
 POST {{base}}/api/purchases
@@ -68,7 +126,7 @@ Authorization: Bearer {{carol}}
 X-Organization-ID: northstar
 
 ### Administrator changes another existing member's role
-PATCH {{base}}/api/memberships/alice
+PATCH {{base}}/api/memberships/{{aliceAccountID}}
 Idempotency-Key: action-71
 Authorization: Bearer {{carol}}
 X-Organization-ID: northstar

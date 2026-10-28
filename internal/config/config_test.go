@@ -7,7 +7,10 @@ func lookup(values map[string]string) Lookup {
 }
 
 func TestLoadAndValidate(t *testing.T) {
-	defaults := map[string]string{Prefix + "DEMO_AUTH": "true"}
+	defaults := map[string]string{
+		Prefix + "DEMO_AUTH":    "true",
+		Prefix + "DATABASE_URL": "postgres://localhost/test",
+	}
 
 	settings, err := LoadFrom(lookup(defaults))
 	if err != nil {
@@ -15,7 +18,7 @@ func TestLoadAndValidate(t *testing.T) {
 	}
 
 	if settings.Features.PurchaseExport != nil ||
-		settings.Database.Mode != "memory" ||
+		settings.Database.Mode != "postgres" ||
 		!settings.Server.Gzip {
 		t.Fatalf("bad defaults: %+v", settings)
 	}
@@ -61,7 +64,7 @@ func TestLoadAndValidate(t *testing.T) {
 		},
 		{
 			"DATABASE_MODE",
-			"postgres",
+			"memory",
 		},
 		{
 			"LOG_LEVEL",

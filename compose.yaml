@@ -11,9 +11,20 @@ services:
     volumes:
       - ./db/migrations/001_initial.sql:/docker-entrypoint-initdb.d/001_initial.sql:ro
       - ./db/migrations/002_auth_sessions.sql:/docker-entrypoint-initdb.d/002_auth_sessions.sql:ro
-      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/003_fixtures.sql:ro
+      - ./db/migrations/003_idempotency.sql:/docker-entrypoint-initdb.d/003_idempotency.sql:ro
+      - ./db/migrations/004_local_credentials.sql:/docker-entrypoint-initdb.d/004_local_credentials.sql:ro
+      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/005_fixtures.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pluto_demo -d pluto_demo"]
       interval: 2s
       timeout: 2s
       retries: 20
+
+  mailpit:
+    image: axllent/mailpit:v1.27.10
+    environment:
+      MP_MAX_MESSAGES: 100
+      MP_SMTP_AUTH_ACCEPT_ANY: "false"
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"

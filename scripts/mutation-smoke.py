@@ -8,6 +8,22 @@ import tempfile
 ROOT = Path(__file__).resolve().parent.parent
 MUTATIONS = [
     (
+        "development socket peer guard removed",
+        "internal/auth/ingress.go",
+        "if err != nil || peer == nil || !peer.IsLoopback() {",
+        "if err != nil || peer == nil {",
+        "./internal/auth",
+        "TestDevelopmentIngressUsesSocketPeerAndBoundsRate",
+    ),
+    (
+        "development client limit removed",
+        "internal/auth/ingress.go",
+        "if err := clients.Allow(r.Context(), peer.String()); err != nil {",
+        "if err := clients.Allow(r.Context(), peer.String()); false && err != nil {",
+        "./internal/auth",
+        "TestDevelopmentIngressUsesSocketPeerAndBoundsRate",
+    ),
+    (
         "self-approval guard removed",
         "internal/operations/purchases.go",
         "if purchase.CreatorID == principal.ActorID {",

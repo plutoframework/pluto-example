@@ -48,33 +48,6 @@ func (s Sessions) Authenticate(
 	}, nil
 }
 
-// DemoCredentials is only wired when DEMO_AUTH is enabled on a loopback bind.
-// These public fixture credentials bootstrap sessions; they are never accepted
-// directly by protected business endpoints.
-type DemoCredentials struct{}
-
-func (DemoCredentials) Subject(
-	ctx context.Context,
-	credential string,
-) (string, error) {
-	if err := ctx.Err(); err != nil {
-		return "", err
-	}
-
-	switch credential {
-	case "demo_alice_mJ7Kq9vL2xR8":
-		return "alice", nil
-	case "demo_bob_tW4nC6yP1sF3":
-		return "bob", nil
-	case "demo_carol_hG8dA5uZ9eQ2":
-		return "carol", nil
-	case "demo_dana_bN6rV3kT7jS4":
-		return "dana", nil
-	default:
-		return "", domain.ErrUnauthenticated
-	}
-}
-
 func DemoMemberships() []domain.Membership {
 	return []domain.Membership{
 		{

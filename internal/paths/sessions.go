@@ -2,16 +2,6 @@ package paths
 
 import "github.com/plutoframework/pluto-example/internal/api"
 
-var CreateSession = Endpoint{
-	ID:            "sessions.create",
-	Name:          "Sign in",
-	Description:   "Exchange an explicitly enabled local demo credential for a secure session cookie. Requires a trusted Origin.",
-	Method:        "POST",
-	Path:          "/auth/session",
-	Response:      api.SessionResponse{},
-	SuccessStatus: 201,
-}
-
 var GetSession = Endpoint{
 	ID:            "sessions.get",
 	Name:          "Read current session",

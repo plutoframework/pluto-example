@@ -19,6 +19,12 @@
       "AuditResponse": {
         "$ref": "./schemas.json#/components/schemas/AuditResponse"
       },
+      "AuthResult": {
+        "$ref": "./schemas.json#/components/schemas/AuthResult"
+      },
+      "ChallengeInput": {
+        "$ref": "./schemas.json#/components/schemas/ChallengeInput"
+      },
       "ChangeRoleRequest": {
         "$ref": "./schemas.json#/components/schemas/ChangeRoleRequest"
       },
@@ -33,6 +39,9 @@
       },
       "DecisionRequest": {
         "$ref": "./schemas.json#/components/schemas/DecisionRequest"
+      },
+      "EmailInput": {
+        "$ref": "./schemas.json#/components/schemas/EmailInput"
       },
       "Error": {
         "$ref": "./schemas.json#/components/schemas/Error"
@@ -52,6 +61,9 @@
       "Metadata": {
         "$ref": "./schemas.json#/components/schemas/Metadata"
       },
+      "PasswordInput": {
+        "$ref": "./schemas.json#/components/schemas/PasswordInput"
+      },
       "Purchase": {
         "$ref": "./schemas.json#/components/schemas/Purchase"
       },
@@ -64,6 +76,9 @@
       "PurchasesResponse": {
         "$ref": "./schemas.json#/components/schemas/PurchasesResponse"
       },
+      "ResetInput": {
+        "$ref": "./schemas.json#/components/schemas/ResetInput"
+      },
       "Session": {
         "$ref": "./schemas.json#/components/schemas/Session"
       },
@@ -73,12 +88,7 @@
     },
     "securitySchemes": {
       "bearerAuth": {
-        "description": "Opaque Pluto session token; never the demo bootstrap credential.",
-        "scheme": "bearer",
-        "type": "http"
-      },
-      "demoCredential": {
-        "description": "Local fixture credential, accepted only by POST /auth/session.",
+        "description": "Opaque Pluto session token.",
         "scheme": "bearer",
         "type": "http"
       },
@@ -90,7 +100,7 @@
     }
   },
   "info": {
-    "description": "Local prototype using Pluto sessions; demo credentials only bootstrap sessions. Business validation remains in operations.",
+    "description": "Local password lifecycle with separate trusted development membership provisioning.",
     "title": "Organization Purchasing Example",
     "version": "0.1.0"
   },
@@ -688,6 +698,18 @@
         "x-permission": "purchases:create"
       }
     },
+    "/auth/enroll": {
+      "$ref": "./auth.json#/paths/~1auth~1enroll"
+    },
+    "/auth/logout": {
+      "$ref": "./auth.json#/paths/~1auth~1logout"
+    },
+    "/auth/recovery": {
+      "$ref": "./auth.json#/paths/~1auth~1recovery"
+    },
+    "/auth/reset": {
+      "$ref": "./auth.json#/paths/~1auth~1reset"
+    },
     "/auth/session": {
       "delete": {
         "description": "Revoke the current session before clearing its cookie. Does not require an active organization membership.",
@@ -750,44 +772,16 @@
         "summary": "Read current session",
         "x-feature": "",
         "x-permission": ""
-      },
-      "post": {
-        "description": "Exchange an explicitly enabled local demo credential for a secure session cookie. Requires a trusted Origin.",
-        "operationId": "sessions.create",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Origin",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SessionResponse"
-                }
-              }
-            },
-            "description": "Success"
-          },
-          "default": {
-            "$ref": "#/components/responses/Error"
-          }
-        },
-        "security": [
-          {
-            "demoCredential": []
-          }
-        ],
-        "summary": "Sign in",
-        "x-feature": "",
-        "x-permission": ""
       }
+    },
+    "/auth/signin": {
+      "$ref": "./auth.json#/paths/~1auth~1signin"
+    },
+    "/auth/verification": {
+      "$ref": "./auth.json#/paths/~1auth~1verification"
+    },
+    "/auth/verify": {
+      "$ref": "./auth.json#/paths/~1auth~1verify"
     }
   },
   "servers": [

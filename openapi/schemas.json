@@ -57,6 +57,30 @@
         ],
         "type": "object"
       },
+      "AuthResult": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "ChallengeInput": {
+        "additionalProperties": false,
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "type": "object"
+      },
       "ChangeRoleRequest": {
         "additionalProperties": false,
         "properties": {
@@ -119,6 +143,18 @@
         },
         "required": [
           "decision"
+        ],
+        "type": "object"
+      },
+      "EmailInput": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
         ],
         "type": "object"
       },
@@ -224,6 +260,22 @@
         ],
         "type": "object"
       },
+      "PasswordInput": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object"
+      },
       "Purchase": {
         "additionalProperties": false,
         "properties": {
@@ -315,6 +367,22 @@
         "required": [
           "page",
           "data"
+        ],
+        "type": "object"
+      },
+      "ResetInput": {
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "password"
         ],
         "type": "object"
       },
