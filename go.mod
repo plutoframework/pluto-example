@@ -8,7 +8,7 @@ require (
 	github.com/plutoframework/pluto-auth v0.3.0
 	github.com/plutoframework/pluto-auth/methods/password v0.3.0
 	github.com/plutoframework/pluto-auth/stores/postgres v0.3.0
-	github.com/plutoframework/pluto-core v0.2.1
+	github.com/plutoframework/pluto-core v0.3.0
 	github.com/plutoframework/pluto-core/stores/postgres v0.1.0
 	github.com/plutoframework/pluto-core/stores/valkey v0.1.0
 	github.com/plutoframework/pluto-jobs v0.1.1

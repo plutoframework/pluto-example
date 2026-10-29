@@ -1,19 +1,17 @@
 // Package features is the adapter boundary for future remote evaluation providers.
 package features
 
-import "github.com/plutoframework/pluto-example/internal/domain"
+import (
+	"github.com/plutoframework/pluto-example/internal/domain"
 
-type Key string
+	corefeatures "github.com/plutoframework/pluto-core/features"
+)
+
+type Key = corefeatures.Key
 
 const PurchaseExport Key = "purchase_export"
 
-type Definition struct {
-	Key           Key
-	Name          string
-	Description   string
-	Default       bool
-	ClientVisible bool
-}
+type Definition = corefeatures.Definition
 
 var Export = Definition{
 	Key:           PurchaseExport,
@@ -42,40 +40,24 @@ type Evaluator interface {
 	Enabled(Key, domain.Principal) bool
 }
 
-// Snapshot copies only declared startup values; absent values use each definition's fallback.
-// An explicit false is preserved. This is a local provider, not OpenFeature or OFREP.
-type Snapshot struct{ values map[Key]bool }
+// Snapshot adapts Core evaluation to the application's verified principal.
+type Snapshot struct{ snapshot *corefeatures.Snapshot }
 
 func NewSnapshot(overrides map[Key]bool) *Snapshot {
-	values := make(map[Key]bool)
-
-	for _, definition := range Definitions() {
-		value, present := overrides[definition.Key]
-		if !present {
-			value = definition.Default
-		}
-
-		values[definition.Key] = value
+	return &Snapshot{
+		snapshot: corefeatures.MustSnapshot(Definitions(), overrides),
 	}
-
-	return &Snapshot{values: values}
 }
 
 func (s *Snapshot) Enabled(key Key, principal domain.Principal) bool {
-	return principal.Verified() && s.values[key]
+	return s != nil && principal.Verified() && s.snapshot.Enabled(key)
 }
 
 func Visible(evaluator Evaluator, principal domain.Principal) map[string]bool {
-	values := make(map[string]bool)
-
-	for _, definition := range Definitions() {
-		if definition.ClientVisible {
-			values[string(definition.Key)] = evaluator.Enabled(
-				definition.Key,
-				principal,
-			)
-		}
-	}
-
-	return values
+	return corefeatures.Visible(
+		Definitions(),
+		corefeatures.EvaluateFunc(func(key Key) bool {
+			return evaluator != nil && evaluator.Enabled(key, principal)
+		}),
+	)
 }
