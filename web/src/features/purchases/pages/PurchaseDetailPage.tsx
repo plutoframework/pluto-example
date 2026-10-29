@@ -7,11 +7,12 @@ import { PageHeader, Loading, Notice } from "@/shared/ui/feedback";
 import { date, money } from "@/shared/lib/format";
 import { usePurchase } from "../queries";
 import { usePurchaseCommand } from "../mutations";
+import { ReviewPanel } from "./ReviewPanel";
 import { PurchaseStatus } from "../components/PurchaseStatus";
 
 export function PurchaseDetailPage() {
   const { purchaseId } = useParams({ from: "/purchases/$purchaseId" });
-  const { scope, can } = useWorkspace();
+  const { scope, can, features } = useWorkspace();
   const query = usePurchase(scope, purchaseId);
   const command = usePurchaseCommand(scope);
   const keys = useRef(new Map<string, string>());
@@ -133,6 +134,13 @@ export function PurchaseDetailPage() {
           </div>
         </Card>
       </section>
+      {features.purchase_review && can("purchases:read") && (
+        <ReviewPanel
+          key={`${scope.organization}:${scope.actor}:${scope.session}:${purchaseId}`}
+          scope={scope}
+          id={purchaseId}
+        />
+      )}
     </>
   );
 }

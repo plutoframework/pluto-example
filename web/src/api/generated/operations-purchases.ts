@@ -140,6 +140,32 @@ export interface purchasesOperations {
             default: components["responses"]["Error"];
         };
     };
+    "purchases.review": {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active organization, verified against token membership. */
+                "X-Organization-ID": string;
+            };
+            path: {
+                purchaseID: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseReviewResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
     "purchases.submit": {
         parameters: {
             query?: never;

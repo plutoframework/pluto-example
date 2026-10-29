@@ -39,6 +39,7 @@ func All() []Endpoint {
 		CreatePurchase,
 		ListPurchases,
 		GetPurchase,
+		ReviewPurchase,
 		SubmitPurchase,
 		DecidePurchase,
 		ExportPurchases,

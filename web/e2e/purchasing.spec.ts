@@ -13,12 +13,12 @@ const accounts: Record<
 const title = `Field optics ${randomBytes(4).toString("hex")}`;
 let purchaseId = "";
 let http: APIRequestContext;
+const mailpit =
+  process.env.PLUTO_EXAMPLE_E2E_MAILPIT ?? "http://127.0.0.1:8025";
 test.describe.configure({ mode: "serial" });
 
 async function confirmation(email: string, purpose: string): Promise<string> {
-  const result = await http.get(
-    "http://127.0.0.1:8025/api/v1/messages?limit=100",
-  );
+  const result = await http.get(`${mailpit}/api/v1/messages?limit=100`);
   const data = await result.json();
   const message = data.messages.find(
     (value: { To: { Address: string }[]; Subject: string }) =>
@@ -27,7 +27,7 @@ async function confirmation(email: string, purpose: string): Promise<string> {
   );
   if (!message) throw new Error("Local verification message missing");
   const detail = await (
-    await http.get(`http://127.0.0.1:8025/api/v1/message/${message.ID}`)
+    await http.get(`${mailpit}/api/v1/message/${message.ID}`)
   ).json();
   const match = String(detail.Text).match(/^Token: ([A-Za-z0-9_-]{43})\s*$/m);
   if (!match?.[1]) throw new Error("Local verification token missing");
@@ -98,7 +98,7 @@ test.beforeAll(async () => {
   for (const line of readFileSync(`${root}/.env.example`, "utf8").split("\n")) {
     if (/^[A-Z][A-Z0-9_]*=/.test(line)) {
       const index = line.indexOf("=");
-      env[line.slice(0, index)] = line.slice(index + 1);
+      env[line.slice(0, index)] ??= line.slice(index + 1);
     }
   }
   execFileSync(
@@ -148,6 +148,19 @@ test("member creates/submits a real request, isolates organizations and logs out
   ).toBeVisible();
   purchaseId = page.url().split("/").at(-1)!;
   await expect(page.getByText("$2,425.50", { exact: true })).toBeVisible();
+  if (process.env.PLUTO_EXAMPLE_E2E_AGENT_REVIEW === "true") {
+    await page
+      .getByRole("button", { name: "Review purchase", exact: true })
+      .click();
+    await expect(
+      page.getByText("Demo · deterministic suggestions", { exact: true }),
+    ).toBeVisible();
+    const reviewed = await page.request.get(`/api/purchases/${purchaseId}`, {
+      headers: { "X-Organization-ID": "northstar" },
+    });
+    expect(reviewed.status()).toBe(200);
+    expect((await reviewed.json()).data.status).toBe("draft");
+  }
   await page.getByRole("button", { name: /Submit for review/ }).click();
   await expect(
     page.getByText("Awaiting review", { exact: true }),

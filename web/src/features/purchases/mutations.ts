@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, organizationHeaders, writeHeaders } from "@/api/client";
 import { scopeKey } from "@/features/workspace/public";
@@ -50,4 +51,28 @@ export function usePurchaseExport(scope: Scope) {
       return data.data;
     },
   });
+}
+
+export function usePurchaseReview(scope: Scope) {
+  return useMutation({
+    retry: false,
+    mutationFn: async ({ id, signal }: { id: string; signal: AbortSignal }) => {
+      const { data } = await api.POST("/api/purchases/{purchaseID}/review", {
+        signal,
+        params: {
+          header: organizationHeaders(scope.organization),
+          path: { purchaseID: id },
+        },
+      });
+      if (!data) throw new Error("Review response missing");
+      return data.data;
+    },
+  });
+}
+
+export function useReviewController(scope: Scope) {
+  const review = usePurchaseReview(scope);
+  const controller = useRef<AbortController | null>(null);
+  useEffect(() => () => controller.current?.abort(), []);
+  return { review, controller };
 }

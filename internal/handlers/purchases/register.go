@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/plutoframework/pluto-example/internal/domain"
+	"github.com/plutoframework/pluto-example/internal/operations"
 	"github.com/plutoframework/pluto-example/internal/paths"
 	"github.com/plutoframework/pluto-example/internal/pluto"
 
@@ -11,6 +12,11 @@ import (
 )
 
 type Operations interface {
+	ReviewPurchase(
+		context.Context,
+		domain.Principal,
+		string,
+	) (operations.Review, error)
 	Create(
 		context.Context,
 		domain.Principal,
@@ -47,6 +53,7 @@ func Register(
 		operations: operations,
 		bodyLimit:  bodyLimit,
 	}
+	registrar.Handle(paths.ReviewPurchase, handler.review)
 	registrar.Handle(paths.CreatePurchase, handler.create)
 	registrar.Handle(paths.ListPurchases, handler.list)
 	registrar.Handle(paths.ExportPurchases, handler.export)

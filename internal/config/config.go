@@ -15,6 +15,7 @@ import (
 const Prefix = "PLUTO_EXAMPLE_"
 
 type Config struct {
+	Review   ReviewConfig
 	Server   ServerConfig
 	Database DatabaseConfig
 	Logging  LoggingConfig
@@ -58,6 +59,9 @@ func LoadFrom(lookup Lookup) (Config, error) {
 			*target = value
 		}
 	}
+	text("AGENT_MODE", &config.Review.Mode)
+	text("AGENT_OPENAI_API_KEY", &config.Review.APIKey)
+	text("AGENT_MODEL", &config.Review.Model)
 	text("SERVER_ADDRESS", &config.Server.Address)
 	text("DATABASE_MODE", &config.Database.Mode)
 	text("DATABASE_URL", &config.Database.URL)
@@ -125,6 +129,17 @@ func LoadFrom(lookup Lookup) (Config, error) {
 		}
 	}
 
+	if value, ok := lookup(Prefix + "FEATURE_PURCHASE_REVIEW"); ok {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return Config{}, fmt.Errorf(
+				"FEATURE_PURCHASE_REVIEW must be boolean",
+			)
+		}
+
+		config.Features.PurchaseReview = &parsed
+	}
+
 	if value, ok := lookup(Prefix + "FEATURE_PURCHASE_EXPORT"); ok {
 		parsed, err := strconv.ParseBool(value)
 		if err != nil {
@@ -145,6 +160,10 @@ func LoadFrom(lookup Lookup) (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if err := c.Review.Validate(); err != nil {
+		return err
+	}
+
 	switch c.Cache.Backend {
 	case "", "none", "memory", "valkey":
 	default:

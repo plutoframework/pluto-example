@@ -18,6 +18,9 @@ import (
 	"github.com/plutoframework/pluto-example/internal/storage/postgres"
 
 	"github.com/jackc/pgx/v5"
+	agent "github.com/plutoframework/pluto-agent"
+	agentotel "github.com/plutoframework/pluto-agent/integrations/otel"
+	"github.com/plutoframework/pluto-agent/providers/openai"
 	"github.com/plutoframework/pluto-auth/methods/password"
 	authpostgres "github.com/plutoframework/pluto-auth/stores/postgres"
 	idempostgres "github.com/plutoframework/pluto-core/stores/postgres"
@@ -182,6 +185,33 @@ func newWithLocal(ctx context.Context, settings config.Config,
 
 	evaluator := features.NewSnapshot(settings.Features.Overrides())
 	service := operations.New(store, evaluator, policy)
+
+	if settings.Review.Mode == "demo" || settings.Review.Mode == "openai" {
+		var observer agent.Observer
+		if runtime != nil {
+			observer, err = agentotel.New(runtime.Tracer)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		factory := operations.DemoReviewProvider
+		if settings.Review.Mode == "openai" {
+			factory = func() (agent.Provider, error) {
+				return openai.New(openai.Config{
+					APIKey: settings.Review.APIKey,
+					Model:  settings.Review.Model,
+				})
+			}
+		}
+
+		service.ConfigureReview(
+			factory,
+			settings.Review.Mode == "demo",
+			observer,
+		)
+	}
+
 	authentication := SessionAuthentication{
 		Credentials: credentialHTTP,
 		Idempotency: idempotent,

@@ -30,6 +30,10 @@ github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/onsi/gomega v1.42.1 h1:iN1rCUX+44NZ1Dc97MPoeFYbFR0vh8zxoxMFwKdyZ6I=
 github.com/onsi/gomega v1.42.1/go.mod h1:REff/hsDsodHoKlWsP2mAPhu1+5/6hVYNf9rIEBpeSg=
+github.com/plutoframework/pluto-agent v0.1.3 h1:w+a5Zm2K+I6/+JCH7DvaHltmZleYgSpzlBSJJHZjky0=
+github.com/plutoframework/pluto-agent v0.1.3/go.mod h1:kgb6jFXGwRU7Sr6SwIp9fQYUxdm08vgGDfzgGTbggB0=
+github.com/plutoframework/pluto-agent/integrations/otel v0.1.2 h1:spBv0EQF+x7UoBLt6nbXXObRnMNOsRLyxoe1EM8e/+8=
+github.com/plutoframework/pluto-agent/integrations/otel v0.1.2/go.mod h1:9qVx3O68eKu3hQWIZMwGaWfqQJdX3JaMyuSFNHgKoAE=
 github.com/plutoframework/pluto-auth v0.3.0 h1:gPqnGBSXRM59+hQTwyqrRRU7gdxjAh0dMsKQRcrJuFc=
 github.com/plutoframework/pluto-auth v0.3.0/go.mod h1:HQZU04XbBCfkfALpO4twiunihATxfNdH7jIrzpBAyDA=
 github.com/plutoframework/pluto-auth/methods/password v0.3.0 h1:Caq0PqbGR26HU6Zt9wyHbrt1GY6+X8KJz4T1aezMGL0=

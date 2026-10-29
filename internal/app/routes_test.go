@@ -415,7 +415,8 @@ func TestVisibleFlagsUseSameEvaluatorAndRequireAuth(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if response.Code != 200 || len(body.Data) != 1 ||
+		if response.Code != 200 || len(body.Data) != 2 ||
+			body.Data["purchase_review"] ||
 			body.Data["purchase_export"] != enabled {
 			t.Fatalf("bad flags: status=%d %+v", response.Code, body)
 		}

@@ -10,15 +10,19 @@ import (
 	"github.com/plutoframework/pluto-example/internal/domain"
 	"github.com/plutoframework/pluto-example/internal/features"
 
+	agent "github.com/plutoframework/pluto-agent"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type Service struct {
-	policy     *rbac.Policy
-	repository Repository
-	features   features.Evaluator
-	now        func() time.Time
-	newID      func() string
+	reviewProvider func() (agent.Provider, error)
+	reviewDemo     bool
+	reviewObserver agent.Observer
+	policy         *rbac.Policy
+	repository     Repository
+	features       features.Evaluator
+	now            func() time.Time
+	newID          func() string
 }
 
 func New(

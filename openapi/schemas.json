@@ -429,6 +429,41 @@
         ],
         "type": "object"
       },
+      "PurchaseReview": {
+        "additionalProperties": false,
+        "properties": {
+          "demo": {
+            "type": "boolean"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "next_steps",
+          "demo"
+        ],
+        "type": "object"
+      },
+      "PurchaseReviewResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PurchaseReview"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "PurchasesResponse": {
         "additionalProperties": false,
         "properties": {

@@ -40,7 +40,8 @@ func TestSnapshotPresenceAndExposure(t *testing.T) {
 			}
 
 			visible := Visible(snapshot, actor)
-			if len(visible) != 1 || visible["purchase_export"] != test.want {
+			if len(visible) != 2 || visible["purchase_review"] ||
+				visible["purchase_export"] != test.want {
 				t.Fatalf("bad exposure: %+v", visible)
 			}
 

@@ -377,3 +377,48 @@ through PostgreSQL instrumentation rather than the nontransactional enqueuer
 adapter. There are no application-owned outbound HTTP clients in this example.
 Instrumentation excludes raw request paths, SQL, query parameters, cache keys,
 job payloads and credential data. Business audit records remain independent.
+
+## Read-only agent purchase review
+
+Purchase review is off by default. With the normal local Postgres/Mailpit setup
+and HTTPS frontend, start the API with:
+
+```sh
+PLUTO_EXAMPLE_AGENT_MODE=demo \
+PLUTO_EXAMPLE_FEATURE_PURCHASE_REVIEW=true \
+PLUTO_EXAMPLE_SERVER_ADDRESS=127.0.0.1:18080 go run ./cmd/api
+```
+
+Use the ordinary authentication configuration described above. Open a visible
+purchase and choose **Review purchase**. Demo mode invokes the actual scoped
+purchase operation with a deterministic scripted provider and labels its results.
+It makes no model/network request. `POST /api/purchases/{purchaseID}/review`
+returns `{data:{summary,next_steps,demo}}`. It cannot approve, pay or change data.
+
+Real mode requires explicit `PLUTO_EXAMPLE_AGENT_MODE=openai`, the review feature
+flag, `PLUTO_EXAMPLE_AGENT_MODEL=gpt-5.4` (or its supported dated snapshot), and
+`PLUTO_EXAMPLE_AGENT_OPENAI_API_KEY` supplied privately through the environment.
+Enabled invalid real configuration fails startup. Never store credentials in
+pluto.toml. No live credentials are needed for tests: the real adapter is tested
+against a local HTTP fake. The endpoint is fixed by the adapter in real mode;
+model arguments cannot choose URLs, purchase IDs, identity, tenant or roles.
+
+Current permission and resource checks run before a provider is constructed and
+again in the tool. The only registered/run-allowed tool reads the server-selected
+purchase through existing operations. Advice is untrusted text for human review;
+it grants no authority. Optional application telemetry uses the published agent
+OTEL observer without prompts, tool arguments, results or credentials in spans.
+
+Each request starts a fresh run, even if an Idempotency-Key is supplied. There is
+no response replay cache, credential cache, durable run store or exactly-once
+claim. Client retries are disabled; deliberately triggering another review can
+incur another provider charge. Limits are two model calls, one tool call, no
+repairs, 512 output tokens per call, 8,000 accounted tokens and a ten-second run
+budget (four seconds/model, one second/tool). Token accounting is post-hoc, not a
+hard spending cap. Cancellation is cooperative and cannot undo provider billing.
+No shared rate limiter or durable agent audit trail is claimed.
+
+To exercise review in the serial browser walkthrough set
+`PLUTO_EXAMPLE_E2E_AGENT_REVIEW=true` with demo mode and its flag enabled. Set
+`PLUTO_EXAMPLE_E2E_MAILPIT` to a disposable loopback Mailpit API when using dynamic
+ports. Fixture setup respects explicitly supplied environment configuration.

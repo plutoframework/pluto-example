@@ -86,3 +86,18 @@ var ExportPurchases = Endpoint{
 	Response:      api.PurchaseExportResponse{},
 	SuccessStatus: http.StatusOK,
 }
+
+// Reviews deliberately do not use replay storage. Each POST starts a fresh,
+// bounded read-only run after current authorization; clients must not auto-retry.
+var ReviewPurchase = Endpoint{
+	ID:            "purchases.review",
+	Name:          "Review purchase",
+	Description:   "Read-only advisory review. Repeated requests start new runs.",
+	Method:        http.MethodPost,
+	Path:          "/api/purchases/{purchaseID}/review",
+	Authenticated: true,
+	Permission:    domain.PurchaseRead,
+	Feature:       features.PurchaseReview,
+	Response:      api.PurchaseReviewResponse{},
+	SuccessStatus: http.StatusOK,
+}

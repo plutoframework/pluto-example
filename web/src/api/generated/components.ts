@@ -110,6 +110,14 @@ export interface components {
         PurchaseResponse: {
             data: components["schemas"]["Purchase"];
         };
+        PurchaseReview: {
+            demo: boolean;
+            next_steps: string[];
+            summary: string;
+        };
+        PurchaseReviewResponse: {
+            data: components["schemas"]["PurchaseReview"];
+        };
         PurchasesResponse: {
             data: components["schemas"]["Purchase"][];
             page: components["schemas"]["Metadata"];

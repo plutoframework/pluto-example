@@ -85,6 +85,12 @@
       "PurchaseResponse": {
         "$ref": "./schemas.json#/components/schemas/PurchaseResponse"
       },
+      "PurchaseReview": {
+        "$ref": "./schemas.json#/components/schemas/PurchaseReview"
+      },
+      "PurchaseReviewResponse": {
+        "$ref": "./schemas.json#/components/schemas/PurchaseReviewResponse"
+      },
       "PurchasesResponse": {
         "$ref": "./schemas.json#/components/schemas/PurchasesResponse"
       },
@@ -734,6 +740,57 @@
         "summary": "Decide purchase request",
         "x-feature": "",
         "x-permission": "purchases:decide"
+      }
+    },
+    "/api/purchases/{purchaseID}/review": {
+      "post": {
+        "description": "Read-only advisory review. Repeated requests start new runs.",
+        "operationId": "purchases.review",
+        "parameters": [
+          {
+            "description": "Active organization, verified against token membership.",
+            "in": "header",
+            "name": "X-Organization-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "purchaseID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseReviewResponse"
+                }
+              }
+            },
+            "description": "Success"
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "sessionCookie": []
+          }
+        ],
+        "summary": "Review purchase",
+        "x-feature": "purchase_review",
+        "x-permission": "purchases:read"
       }
     },
     "/api/purchases/{purchaseID}/submit": {

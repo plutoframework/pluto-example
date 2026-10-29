@@ -11,6 +11,8 @@ type Key = corefeatures.Key
 
 const PurchaseExport Key = "purchase_export"
 
+const PurchaseReview Key = "purchase_review"
+
 type Definition = corefeatures.Definition
 
 var Export = Definition{
@@ -32,6 +34,11 @@ var internalDiagnostics = Definition{
 func Definitions() []Definition {
 	return []Definition{
 		Export,
+		{
+			Key: PurchaseReview, Name: "Purchase review",
+			Description: "Read-only purchase review suggestions.",
+			Default:     false, ClientVisible: true,
+		},
 		internalDiagnostics,
 	}
 }
