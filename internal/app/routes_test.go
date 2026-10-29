@@ -469,10 +469,10 @@ func TestCompletionLogsAreEnrichedAndDoNotContainCredentials(t *testing.T) {
 	}
 
 	if record["endpoint_id"] != "purchases.export" ||
-		record["actor_id"] != "bob" ||
-		record["tenant_id"] != "northstar" ||
+		record["actor_id"] != nil ||
+		record["tenant_id"] != nil ||
 		record["status"] != float64(403) {
-		t.Fatalf("missing verified enrichment: %+v", record)
+		t.Fatalf("unexpected diagnostic metadata: %+v", record)
 	}
 
 	if record["request_id"] != response.Header().Get("X-Request-ID") ||

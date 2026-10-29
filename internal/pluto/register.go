@@ -86,16 +86,6 @@ func (r *Registrar) Handle(endpoint paths.Endpoint, handler http.HandlerFunc) {
 					return
 				}
 
-				logger = logger.With(
-					"actor_id",
-					principal.ActorID,
-					"tenant_id",
-					principal.TenantID,
-				)
-				if state != nil {
-					state.logger = logger
-				}
-
 				ctx := context.WithValue(
 					request.Context(),
 					principalKey,
