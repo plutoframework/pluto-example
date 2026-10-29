@@ -11,7 +11,7 @@ require (
 	github.com/plutoframework/pluto-core v0.3.0
 	github.com/plutoframework/pluto-core/stores/postgres v0.1.0
 	github.com/plutoframework/pluto-core/stores/valkey v0.1.0
-	github.com/plutoframework/pluto-core/telemetry v0.1.0
+	github.com/plutoframework/pluto-core/telemetry v0.1.1
 	github.com/plutoframework/pluto-jobs v0.1.1
 	github.com/plutoframework/pluto-jobs/stores/postgres v0.1.0
 	github.com/plutoframework/pluto-rbac v0.1.0

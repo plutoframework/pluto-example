@@ -42,8 +42,8 @@ github.com/plutoframework/pluto-core/stores/postgres v0.1.0 h1:qCTcfxBCutg+m/JC2
 github.com/plutoframework/pluto-core/stores/postgres v0.1.0/go.mod h1:vXeYtitgQGS4cTClftO5AglxqqvWlFwdoB4kKUC5A7Q=
 github.com/plutoframework/pluto-core/stores/valkey v0.1.0 h1:2dgTKQHK/LE+KQxvYjRC1Z8AQsjPjJ1bKwGTb53+QVY=
 github.com/plutoframework/pluto-core/stores/valkey v0.1.0/go.mod h1:yT8RBGfMG8+4CuJrxcnlj8+e1e2Sblnb9uL4m8wdCUY=
-github.com/plutoframework/pluto-core/telemetry v0.1.0 h1:ZzaeD/ZwdBWOiC7Dfs5zwpW5vdqdmIAs3vE/SWfQ838=
-github.com/plutoframework/pluto-core/telemetry v0.1.0/go.mod h1:jpyZLpuAzmStptyDHsbvXAJivGABF75Zg8xeHNWH+Zw=
+github.com/plutoframework/pluto-core/telemetry v0.1.1 h1:NFVgWkCR7AM+pCrTPlcrhyLSza//uYSAVhjQj5ktO5I=
+github.com/plutoframework/pluto-core/telemetry v0.1.1/go.mod h1:jpyZLpuAzmStptyDHsbvXAJivGABF75Zg8xeHNWH+Zw=
 github.com/plutoframework/pluto-jobs v0.1.1 h1:JTPldDRr1EshlepmdQKABsgGA3FQOEg7N7z7CE2Tejs=
 github.com/plutoframework/pluto-jobs v0.1.1/go.mod h1:ZsfBePMCtaD2XJonZAJ1V/A5UYnrBm3N763h1AjJKhQ=
 github.com/plutoframework/pluto-jobs/stores/postgres v0.1.0 h1:KZjPygjvqS6YlnNEV9vy9h6aqm6AUpXNybQeF6mRo54=
