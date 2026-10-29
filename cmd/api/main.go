@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,8 @@ import (
 
 	"github.com/plutoframework/pluto-example/internal/app"
 	"github.com/plutoframework/pluto-example/internal/config"
+
+	"github.com/plutoframework/pluto-core/telemetry"
 )
 
 func main() {
@@ -39,9 +42,36 @@ func run() error {
 	)
 	defer stop()
 
+	telemetryConfig, err := config.LoadTelemetry(
+		"pluto-example-api",
+		settings.Cache.Environment,
+	)
+	if err != nil {
+		return err
+	}
+
+	runtime, err := telemetry.New(ctx, telemetryConfig)
+	if err != nil {
+		return err
+	}
+
+	logger = slog.New(runtime.Handler(logger.Handler()))
+
+	defer func() {
+		shutdown, cancel := context.WithTimeout(
+			context.Background(),
+			5*time.Second,
+		)
+		defer cancel()
+
+		if err := runtime.Shutdown(shutdown); err != nil {
+			logger.Error("telemetry shutdown failed")
+		}
+	}()
+
 	startup, cancelStartup := context.WithTimeout(ctx, 10*time.Second)
 
-	application, err := app.New(startup, settings, logger)
+	application, err := app.NewInstrumented(startup, settings, logger, runtime)
 
 	cancelStartup()
 

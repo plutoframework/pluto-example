@@ -22,6 +22,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/plutoframework/pluto-auth/httpauth"
 	"github.com/plutoframework/pluto-core/httpidem"
+	"github.com/plutoframework/pluto-core/telemetry"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
@@ -49,7 +50,22 @@ func Routes(
 	operations ApplicationOperations,
 	policy *rbac.Policy,
 ) http.Handler {
+	return RoutesWithTelemetry(settings, logger, authentication, evaluator,
+		operations, policy, nil)
+}
+
+// RoutesWithTelemetry installs instrumentation within Chi so route templates
+// are available when the request finishes, without recording raw URL paths.
+func RoutesWithTelemetry(settings config.ServerConfig, logger *slog.Logger,
+	authentication SessionAuthentication, evaluator features.Evaluator,
+	operations ApplicationOperations, policy *rbac.Policy,
+	runtime *telemetry.Runtime,
+) http.Handler {
 	router := chi.NewRouter()
+	if runtime != nil {
+		router.Use(runtime.Middleware)
+	}
+
 	router.Use(pluto.SecurityHeaders)
 	router.Use(pluto.Middleware(logger))
 

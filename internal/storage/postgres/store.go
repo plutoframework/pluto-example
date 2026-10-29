@@ -22,7 +22,21 @@ type Store struct {
 }
 
 func Open(ctx context.Context, url string) (*Store, error) {
-	pool, err := pgxpool.New(ctx, url)
+	return OpenWithTracer(ctx, url, nil)
+}
+
+// OpenWithTracer configures instrumentation before creating any connections.
+func OpenWithTracer(ctx context.Context, url string,
+	tracer pgx.QueryTracer,
+) (*Store, error) {
+	config, err := pgxpool.ParseConfig(url)
+	if err != nil {
+		return nil, err
+	}
+
+	config.ConnConfig.Tracer = tracer
+
+	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}

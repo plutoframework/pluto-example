@@ -56,7 +56,7 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 				defer func() {
 					if recovered := recover(); recovered != nil {
 						// Panic values may contain application data. Do not log them.
-						state.logger.Error("request panic")
+						state.logger.ErrorContext(ctx, "request panic")
 
 						if response.status == 0 {
 							Error(response, request, errPanic{})
@@ -68,7 +68,8 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 						status = http.StatusOK
 					}
 
-					state.logger.Info(
+					state.logger.InfoContext(
+						ctx,
 						"request completed",
 						"status",
 						status,

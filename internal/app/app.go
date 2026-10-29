@@ -17,9 +17,11 @@ import (
 	"github.com/plutoframework/pluto-example/internal/pluto"
 	"github.com/plutoframework/pluto-example/internal/storage/postgres"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/plutoframework/pluto-auth/methods/password"
 	authpostgres "github.com/plutoframework/pluto-auth/stores/postgres"
 	idempostgres "github.com/plutoframework/pluto-core/stores/postgres"
+	"github.com/plutoframework/pluto-core/telemetry"
 )
 
 type App struct {
@@ -40,6 +42,13 @@ func New(
 	settings config.Config,
 	logger *slog.Logger,
 ) (*App, error) {
+	return NewInstrumented(ctx, settings, logger, nil)
+}
+
+// NewInstrumented injects a runtime owned and shut down by the caller.
+func NewInstrumented(ctx context.Context, settings config.Config,
+	logger *slog.Logger, runtime *telemetry.Runtime,
+) (*App, error) {
 	if err := settings.Validate(); err != nil {
 		return nil, err
 	}
@@ -59,14 +68,14 @@ func New(
 		return nil, err
 	}
 
-	return NewWithLocal(ctx, settings, logger, auth.LocalDependencies{
+	return newWithLocal(ctx, settings, logger, auth.LocalDependencies{
 		Sender:  sender,
 		Limiter: limiter,
 		Ingress: ingress,
 		DeliveryError: func(context.Context, error) {
 			logger.Warn("authentication delivery failed; request a resend")
 		},
-	})
+	}, runtime)
 }
 
 // NewWithLocal makes delivery/limits explicit for tests and application wiring.
@@ -77,6 +86,13 @@ func NewWithLocal(
 	logger *slog.Logger,
 	dependencies auth.LocalDependencies,
 ) (*App, error) {
+	return newWithLocal(ctx, settings, logger, dependencies, nil)
+}
+
+func newWithLocal(ctx context.Context, settings config.Config,
+	logger *slog.Logger, dependencies auth.LocalDependencies,
+	runtime *telemetry.Runtime,
+) (*App, error) {
 	if err := settings.Validate(); err != nil {
 		return nil, err
 	}
@@ -86,7 +102,12 @@ func NewWithLocal(
 		return nil, err
 	}
 
-	store, err := postgres.Open(ctx, settings.Database.URL)
+	var tracer pgx.QueryTracer
+	if runtime != nil {
+		tracer = runtime.PGXTracer()
+	}
+
+	store, err := postgres.OpenWithTracer(ctx, settings.Database.URL, tracer)
 	if err != nil {
 		return nil, errors.New("postgres connectivity failed")
 	}
@@ -111,6 +132,10 @@ func NewWithLocal(
 	}
 
 	closeCache = shutdownCache
+
+	if runtime != nil {
+		dataCache = runtime.Cache(dataCache)
+	}
 
 	environment := settings.Cache.Environment
 	if environment == "" {
@@ -168,7 +193,7 @@ func NewWithLocal(
 
 	return &App{
 		Accounts: credentials,
-		Handler: Routes(
+		Handler: RoutesWithTelemetry(
 			settings.Server,
 			logger,
 			authentication,
@@ -179,6 +204,7 @@ func NewWithLocal(
 				AccessService:       operations.AccessService{Policy: policy},
 			},
 			policy,
+			runtime,
 		),
 		Close: func() { closeCache(); store.Close() },
 	}, nil

@@ -129,7 +129,9 @@ func Error(writer http.ResponseWriter, request *http.Request, err error) {
 	}
 
 	if status == 500 {
-		Logger(request.Context()).Error("request failed", "error", err)
+		Logger(
+			request.Context(),
+		).ErrorContext(request.Context(), "request failed", "error", err)
 	}
 
 	if status == 401 {

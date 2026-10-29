@@ -354,3 +354,26 @@ hits, tenant/environment isolation, fallback, invalidation and live permissions.
 `./scripts/postgres-check.sh` also starts authenticated Valkey and verifies real HTTP
 membership revocation after a warm cache. Core separately tests the same adapter
 against Redis and Valkey. No additional SQL migration is needed for this cache.
+
+## Optional OpenTelemetry
+
+The API and worker explicitly construct their own optional Core telemetry runtime,
+with service names `pluto-example-api` and `pluto-example-worker`, version
+`development`, and the configured cache environment. Set
+`PLUTO_EXAMPLE_OTEL_ENABLED=true` and optionally
+`PLUTO_EXAMPLE_OTEL_ENDPOINT=http://127.0.0.1:4318` for an OTLP/HTTP collector.
+`PLUTO_EXAMPLE_OTEL_SAMPLE_RATIO` defaults to 1. Telemetry is disabled by default.
+Configuration is read once; runtime providers and propagation remain local to the
+application. Both commands flush telemetry on exit with a separate bounded
+shutdown context, after application resources close.
+
+Chi middleware records route templates, and context-aware JSON slog calls correlate
+request logs. PostgreSQL pools receive the runtime query tracer before connecting;
+shared auth/idempotency queries therefore use the same tracer. Cache calls and
+worker audit delivery use explicit runtime wrappers. Worker execution starts a new
+trace: no trace headers or baggage are persisted in the job payload or schema.
+Transactional audit enqueueing retains `EnqueueTx` and its atomicity; it is observed
+through PostgreSQL instrumentation rather than the nontransactional enqueuer
+adapter. There are no application-owned outbound HTTP clients in this example.
+Instrumentation excludes raw request paths, SQL, query parameters, cache keys,
+job payloads and credential data. Business audit records remain independent.

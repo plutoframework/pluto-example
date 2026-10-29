@@ -54,11 +54,23 @@ func NewWorker(
 	sink AuditSink,
 	config jobs.Config,
 ) (*jobs.Worker, error) {
+	return NewInstrumentedWorker(store, sink, config, nil)
+}
+
+// NewInstrumentedWorker wraps execution without persisting request trace data.
+func NewInstrumentedWorker(store jobs.Store, sink AuditSink, config jobs.Config,
+	wrap func(jobs.Handler) jobs.Handler,
+) (*jobs.Worker, error) {
 	if sink == nil {
 		return nil, jobs.ErrInvalid
 	}
 
+	handler := AuditHandler(sink)
+	if wrap != nil {
+		handler = wrap(handler)
+	}
+
 	return jobs.NewWorker(store, map[jobs.Kind]jobs.Handler{
-		AuditDelivery: AuditHandler(sink),
+		AuditDelivery: handler,
 	}, config)
 }
