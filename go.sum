@@ -40,8 +40,8 @@ github.com/plutoframework/pluto-auth/methods/password v0.3.0 h1:Caq0PqbGR26HU6Zt
 github.com/plutoframework/pluto-auth/methods/password v0.3.0/go.mod h1:GlujMcRf/D01ypCTHXydjWSw3iQKVPPjIe4U+0Bh9Sg=
 github.com/plutoframework/pluto-auth/stores/postgres v0.3.0 h1:joFrWpC+ef29Y/lJCcE8mtmVxf0qO2rJLEuxWIarzB4=
 github.com/plutoframework/pluto-auth/stores/postgres v0.3.0/go.mod h1:bvACgLmGquH/DspoGG2dTnMMXG8PK7J/KcF+81jMgF4=
-github.com/plutoframework/pluto-core v0.3.0 h1:DUIu2EPh9DjAoreMgwEytxpAifkYI5Itjb1ntI9B80s=
-github.com/plutoframework/pluto-core v0.3.0/go.mod h1:aU+OaFQxGmjf3simyHEJHxOZ/ja2dNnC5xyISaGkgVQ=
+github.com/plutoframework/pluto-core v0.4.0 h1:7rKvDW+oGOYegcaa1SJjfH3yUIfdzBA7IotfakuMEG8=
+github.com/plutoframework/pluto-core v0.4.0/go.mod h1:aU+OaFQxGmjf3simyHEJHxOZ/ja2dNnC5xyISaGkgVQ=
 github.com/plutoframework/pluto-core/stores/postgres v0.1.0 h1:qCTcfxBCutg+m/JC2c7FqeD6vEejLBSCEPsaqqSwH4Y=
 github.com/plutoframework/pluto-core/stores/postgres v0.1.0/go.mod h1:vXeYtitgQGS4cTClftO5AglxqqvWlFwdoB4kKUC5A7Q=
 github.com/plutoframework/pluto-core/stores/valkey v0.1.0 h1:2dgTKQHK/LE+KQxvYjRC1Z8AQsjPjJ1bKwGTb53+QVY=

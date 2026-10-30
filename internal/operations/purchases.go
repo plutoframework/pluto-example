@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"strings"
 	"time"
 
@@ -11,10 +12,12 @@ import (
 	"github.com/plutoframework/pluto-example/internal/features"
 
 	agent "github.com/plutoframework/pluto-agent"
+	"github.com/plutoframework/pluto-core/state"
 	rbac "github.com/plutoframework/pluto-rbac"
 )
 
 type Service struct {
+	lifecycle      *state.Machine[domain.Status, domain.PurchaseEvent, domain.PurchaseFacts]
 	reviewProvider func() (agent.Provider, error)
 	reviewDemo     bool
 	reviewObserver agent.Observer
@@ -30,7 +33,14 @@ func New(
 	evaluator features.Evaluator,
 	policy *rbac.Policy,
 ) *Service {
+	lifecycle, err := domain.NewPurchaseLifecycle()
+	if err != nil {
+		// An invalid static definition is a programming error, caught at startup.
+		panic(err)
+	}
+
 	return &Service{
+		lifecycle:  lifecycle,
 		policy:     policy,
 		repository: repository,
 		features:   evaluator,
@@ -178,15 +188,11 @@ func (s *Service) Submit(
 		return domain.Purchase{}, domain.ErrNotFound
 	}
 
-	if purchase.Status != domain.Draft {
-		return domain.Purchase{}, domain.ErrConflict
-	}
-
 	return s.transition(
 		ctx,
 		principal,
 		purchase,
-		domain.Submitted,
+		domain.SubmitPurchase,
 		"purchase.submitted",
 	)
 }
@@ -210,19 +216,16 @@ func (s *Service) Decide(
 		return domain.Purchase{}, err
 	}
 
-	if purchase.CreatorID == principal.ActorID {
-		return domain.Purchase{}, domain.ErrForbidden
-	}
-
-	if purchase.Status != domain.Submitted {
-		return domain.Purchase{}, domain.ErrConflict
+	event := domain.ApprovePurchase
+	if decision == domain.Rejected {
+		event = domain.RejectPurchase
 	}
 
 	return s.transition(
 		ctx,
 		principal,
 		purchase,
-		decision,
+		event,
 		"purchase."+string(decision),
 	)
 }
@@ -231,14 +234,31 @@ func (s *Service) transition(
 	ctx context.Context,
 	principal domain.Principal,
 	purchase domain.Purchase,
-	status domain.Status,
+	event domain.PurchaseEvent,
 	action string,
 ) (domain.Purchase, error) {
+	status, err := s.lifecycle.Next(
+		purchase.Status,
+		event,
+		domain.PurchaseFacts{
+			ActorID:     principal.ActorID,
+			CreatorID:   purchase.CreatorID,
+			AmountCents: purchase.AmountCents,
+		},
+	)
+	if errors.Is(err, state.ErrTransition) || errors.Is(err, state.ErrState) {
+		return domain.Purchase{}, domain.ErrConflict
+	}
+
+	if err != nil {
+		return domain.Purchase{}, err
+	}
+
 	expectedVersion := purchase.Version
 	purchase.Status = status
 	purchase.Version++
 	purchase.UpdatedAt = s.now().UTC()
-	err := s.repository.SavePurchase(
+	err = s.repository.SavePurchase(
 		ctx,
 		purchase,
 		expectedVersion,

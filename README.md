@@ -422,3 +422,19 @@ To exercise review in the serial browser walkthrough set
 `PLUTO_EXAMPLE_E2E_AGENT_REVIEW=true` with demo mode and its flag enabled. Set
 `PLUTO_EXAMPLE_E2E_MAILPIT` to a disposable loopback Mailpit API when using dynamic
 ports. Fixture setup respects explicitly supplied environment configuration.
+
+## Purchase lifecycle rules
+
+[Purchase lifecycle](internal/domain/purchase_lifecycle.go) uses the published
+`github.com/plutoframework/pluto-core/state` package (Core v0.4.0). Draft requests
+can be submitted by their creator; submitted requests can be approved or rejected
+by another actor. Approved/rejected are terminal. Guard facts come from the loaded
+purchase and verified principal, never directly from request bodies or AI output.
+
+The service compiles its static definition once. Operations still enforce RBAC
+and tenant visibility, then ask `Next` for a decision. The existing repository
+atomically checks the expected version and writes the purchase, audit event and
+outbox delivery. All updates to guard-relevant data must increment that version.
+A database concurrency test forces competing approval/rejection operations to
+read the same snapshot and proves only one commits, with no losing audit/job.
+No schema migration or frontend contract change is required.
