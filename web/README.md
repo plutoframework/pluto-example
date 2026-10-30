@@ -270,3 +270,10 @@ use `npm run fmt`, then `npm run lint`. Editor integrations should apply ESLint
 fixes as well. Edit `scripts/readability.mjs` and `.prettierrc.json` to change the
 project's conventions. Generated API/theme artifacts retain their generators'
 format and are type-checked. The 1,000-line ceiling still applies to source.
+
+Standalone comment blocks have one blank line above them, except at line 1.
+Consecutive comment lines stay together, and the comment remains attached to the
+code below. JavaScript and TypeScript lint/format checks enforce this convention,
+including the start of a function or branch. Inline trailing comments are kept
+in place, and next-line compiler/linter directives retain their target. The
+cross-language convention is also recorded in AGENTS.md for future changes.

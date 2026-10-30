@@ -21,6 +21,7 @@ const ignored = new Set([
 export async function formatSource(source, file, linter = eslint) {
   const options = await prettier.resolveConfig(file);
   let current = source;
+
   // Compute one canonical result, including ESLint's structural fixes. This
   // avoids Prettier's compact type printing fighting expanded TypeScript rules.
   for (let pass = 0; pass < 5; pass++) {
@@ -29,7 +30,7 @@ export async function formatSource(source, file, linter = eslint) {
       filepath: file,
     });
     let next = printed;
-    if (/\.[cm]?tsx?$/.test(file)) {
+    if (/\.[cm]?[jt]sx?$/.test(file)) {
       const [result] = await linter.lintText(printed, { filePath: file });
       if (result.fatalErrorCount) throw new Error(`Cannot parse ${file}`);
       next = await prettier.format(result.output ?? printed, {

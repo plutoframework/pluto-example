@@ -12,6 +12,7 @@ export default defineConfig({
     browserName: "chromium",
     channel: "chrome",
     ignoreHTTPSErrors: true,
+
     // Real credential tests must never persist traces or browser storage files.
     trace: "off",
     screenshot: "off",

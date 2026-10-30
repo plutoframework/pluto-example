@@ -23,3 +23,10 @@ The 1,000-line source ceiling includes generated API TypeScript. Only
 web/package-lock.json is exempt as machine-owned dependency resolution data;
 retain its standard format and use npm tooling instead of reading it wholesale.
 Dependencies, binary resources and compiled bundles are outside source limits.
+
+
+Across languages, put one blank line before a standalone comment block unless
+it starts on line 1. Keep consecutive comment lines together and keep the comment
+attached to the code below it. Preserve trailing inline comments and any placement
+required by compiler/tool directives; never separate a next-line directive from
+its target. This preference also applies at the beginning of a code block.

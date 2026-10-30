@@ -11,6 +11,7 @@ try {
   );
   valid = Date.parse(cert.validTo) > Date.now() + 86_400_000;
 } catch {
+
   /* A missing or expired certificate is regenerated locally. */
 }
 if (!valid) {

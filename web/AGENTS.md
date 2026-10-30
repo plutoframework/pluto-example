@@ -28,3 +28,9 @@ mandatory braces, multiline blocks, object/type member expansion and logical
 blank lines. Nested ternaries require explicit branches or named mappings.
 Do not collapse code to fit the line ceiling or disable a rule to avoid splitting
 responsibilities. Formatter regression tests run with the normal test command.
+
+Across languages, put one blank line before a standalone comment block unless
+it starts on line 1. Keep consecutive comment lines together and keep the comment
+attached to the code below it. Preserve trailing inline comments and any placement
+required by compiler/tool directives; never separate a next-line directive from
+its target. This preference also applies at the beginning of a code block.

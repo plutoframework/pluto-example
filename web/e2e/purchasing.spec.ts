@@ -94,6 +94,7 @@ test.beforeAll(async () => {
         })
       ).status(),
     ).toBe(202);
+
     // Explicit loopback-only fixture bootstrap. Re-runs recover the same four
     // synthetic accounts through the real lifecycle rather than bypassing auth.
     const verification = await confirmation(email, "verify_email").catch(

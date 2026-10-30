@@ -183,6 +183,7 @@ export function syncTheme({ check = false, directory = webRoot } = {}) {
   const authored = safe(root, path.join(root, overrides));
   if (!lstatSync(authored).isFile())
     throw new Error("Theme overrides must be an existing CSS file");
+
   // Preflight every destination before writing anything.
   const destinations = Object.entries(outputs).map(([name, content]) => [
     safe(root, path.join(directory, name)),

@@ -64,6 +64,7 @@ export function PurchaseDetailPage() {
         key: keys.current.get("submit")!,
       });
     } catch {
+
       /* Display sanitized error and refresh canonical server state. */
     }
   };

@@ -36,4 +36,12 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ["**/*.{js,mjs,cjs}"],
+    plugins: readability.plugins,
+    rules: {
+      "@stylistic/lines-around-comment":
+        readability.rules["@stylistic/lines-around-comment"],
+    },
+  },
 );

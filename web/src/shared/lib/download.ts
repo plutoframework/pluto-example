@@ -7,6 +7,7 @@ export function downloadJson(value: unknown, name: string): void {
   link.href = url;
   link.download = name;
   link.click();
+
   // Leave the URL alive for the download to start, then release its backing data.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

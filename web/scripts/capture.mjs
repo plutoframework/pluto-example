@@ -29,6 +29,7 @@ const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 
 async function login(name) {
+
   // Credentials are recovered through the real lifecycle, kept only in memory,
   // and never printed or included in screenshots/storage-state/traces.
   const email = `${name}@example.test`;
@@ -70,6 +71,7 @@ async function login(name) {
 async function screenshot(name) {
   await page.locator(".loading").waitFor({ state: "hidden" });
   await page.evaluate(() => document.fonts.ready);
+
   // Paint below-the-fold scrollports after resizing before a full-page capture.
   const table = page.locator(".table__content").first();
   if (await table.count()) {

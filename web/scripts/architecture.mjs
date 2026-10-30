@@ -129,6 +129,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const issues = checkSource(name, source);
     if (!name.includes(".test.") && !name.startsWith("test/"))
       sources.set(name, source);
+
     // Behavior tests may fake transport directly. Production modules remain checked.
     if (!name.includes(".test.") && !name.startsWith("test/"))
       failures.push(...issues.map((issue) => `${name}: ${issue}`));

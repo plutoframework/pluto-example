@@ -164,6 +164,7 @@ export function PurchaseListPage() {
                     `${scope.organization}-purchases.json`,
                   );
                 } catch {
+
                   /* Error shown below. */
                 }
               }}
@@ -301,6 +302,7 @@ export function PurchaseListPage() {
                   params: { purchaseId: record.id },
                 });
               } catch {
+
                 /* Preserve this logical action's key for a retry of the same input. */
               }
             }}

@@ -80,6 +80,7 @@ export function AuthPage() {
                   );
                 }
               } catch {
+
                 /* The mutation's error state is shown above without raw server text. */
               }
             }}

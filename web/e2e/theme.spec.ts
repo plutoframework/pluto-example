@@ -25,6 +25,7 @@ test("TOML theme reloads, follows system changes and respects authored CSS", asy
         exact: true,
       }),
     ).toBeVisible();
+
     // This test modifies only the isolated example's build-time theme. Restore
     // the original bytes, including comments and authored CSS, even on failure.
     const frontend = manifest.frontend as Record<string, unknown>;

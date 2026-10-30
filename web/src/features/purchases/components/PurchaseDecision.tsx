@@ -11,6 +11,7 @@ export function PurchaseDecisionControls({
 }) {
   const { state } = useMachine(flow);
   const send = (event: DecisionEvent) => {
+
     // Expected API errors are flow events; reset if an unexpected contract fails.
     void flow.send(event).catch(() => flow.reset());
   };

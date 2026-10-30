@@ -67,6 +67,7 @@ export function writeHeaders(
 }
 
 export function authHeaders(): Record<"Origin", string> {
+
   // Fetch computes the real Origin in browsers; this also documents the API contract.
   return { Origin: window.location.origin };
 }

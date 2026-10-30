@@ -72,6 +72,7 @@ export function MembersPage() {
                         key: intents.current.get(signature)!,
                       });
                     } catch {
+
                       /* Display server policy failure above. */
                     }
                   }}
