@@ -379,27 +379,25 @@ job payloads and credential data. Business audit records remain independent.
 ## Read-only agent purchase review
 
 Purchase review is off by default. With the normal local Postgres/Mailpit setup
-and HTTPS frontend, start the API with:
+and HTTPS frontend, load `PLUTO_EXAMPLE_AGENT_OPENAI_API_KEY` privately from your
+secret manager or environment, then start the API with the real provider:
 
 ```sh
-PLUTO_EXAMPLE_AGENT_MODE=demo \
+PLUTO_EXAMPLE_AGENT_MODE=openai \
+PLUTO_EXAMPLE_AGENT_MODEL=gpt-5.4 \
 PLUTO_EXAMPLE_FEATURE_PURCHASE_REVIEW=true \
 PLUTO_EXAMPLE_SERVER_ADDRESS=127.0.0.1:18080 go run ./cmd/api
 ```
 
-Use the ordinary authentication configuration described above. Open a visible
-purchase and choose **Review purchase**. Demo mode invokes the actual scoped
-purchase operation with a deterministic scripted provider and labels its results.
-It makes no model/network request. `POST /api/purchases/{purchaseID}/review`
-returns `{data:{summary,next_steps,demo}}`. It cannot approve, pay or change data.
+This requires provider access and may incur charges. The supported dated model
+snapshot is also accepted. Enabled invalid configuration fails startup. Never
+store credentials in `pluto.toml`. The endpoint is fixed by the adapter in real
+mode; model arguments cannot choose URLs, purchase IDs, identity, tenant or roles.
 
-Real mode requires explicit `PLUTO_EXAMPLE_AGENT_MODE=openai`, the review feature
-flag, `PLUTO_EXAMPLE_AGENT_MODEL=gpt-5.4` (or its supported dated snapshot), and
-`PLUTO_EXAMPLE_AGENT_OPENAI_API_KEY` supplied privately through the environment.
-Enabled invalid real configuration fails startup. Never store credentials in
-pluto.toml. No live credentials are needed for tests: the real adapter is tested
-against a local HTTP fake. The endpoint is fixed by the adapter in real mode;
-model arguments cannot choose URLs, purchase IDs, identity, tenant or roles.
+Use ordinary authentication as described above. Open a visible purchase and
+choose **Review purchase**. The actual scoped operation returns model-generated
+advice as `{data:{summary,next_steps,demo}}`; wording varies. It cannot approve,
+pay or change data.
 
 Current permission and resource checks run before a provider is constructed and
 again in the tool. The only registered/run-allowed tool reads the server-selected
@@ -415,6 +413,14 @@ repairs, 512 output tokens per call, 8,000 accounted tokens and a ten-second run
 budget (four seconds/model, one second/tool). Token accounting is post-hoc, not a
 hard spending cap. Cancellation is cooperative and cannot undo provider billing.
 No shared rate limiter or durable agent audit trail is claimed.
+
+### Testing purchase review without inference
+
+For deterministic local or browser tests, replace `PLUTO_EXAMPLE_AGENT_MODE=openai`
+with `PLUTO_EXAMPLE_AGENT_MODE=demo`. Demo mode uses the same scoped purchase
+operation with a scripted provider, labels its result and makes no model call.
+It verifies application behavior, not inference quality. The real adapter is
+separately tested against a controlled HTTP server; tests need no live key.
 
 To exercise review in the serial browser walkthrough set
 `PLUTO_EXAMPLE_E2E_AGENT_REVIEW=true` with demo mode and its flag enabled. Set
