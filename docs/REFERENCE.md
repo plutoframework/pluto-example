@@ -149,12 +149,13 @@ Only uppercase `PLUTO_EXAMPLE_` names are used. Defaults plus environment are su
 
 ## PostgreSQL migrations and persisted tests
 
-Compose initializes a new disposable database with migrations 001 through 004 and
+Compose initializes a new disposable database with migrations 001 through 006 and
 synthetic domain fixtures. Existing databases must explicitly apply
 [004_local_credentials.sql](../db/migrations/004_local_credentials.sql) **after**
 001_initial, 002_auth_sessions and 003_idempotency. It adds accounts, digest-only
 challenges and versioned session bindings without changing existing session-only
-rows. No constructor performs DDL. Do not apply fixtures to a production database.
+rows. Apply [006_authentication.sql](../db/migrations/006_authentication.sql)
+next for v0.4 account policy and authentication evidence. No constructor performs DDL. Do not apply fixtures to a production database.
 Runtime users should have DML privileges separately from migration owners.
 
 ```sh
@@ -442,3 +443,15 @@ outbox delivery. All updates to guard-relevant data must increment that version.
 A database concurrency test forces competing approval/rejection operations to
 read the same snapshot and proves only one commits, with no losing audit/job.
 No schema migration or frontend contract change is required.
+
+## Account authentication upgrade
+
+This revision uses Pluto Auth v0.4.0. Account-backed deployments explicitly apply
+`db/migrations/006_authentication.sql` after the existing migrations, before
+running the upgraded application. Constructors perform no DDL. Existing sessions
+keep unknown authentication evidence until the next real sign-in; rotation does
+not make them fresh. See [the authentication guide](https://plutoframework.github.io/pluto-site/docs/backend/authentication/).
+
+The library foundation adds account policy, method evidence and freshness guards.
+Native social sign-in, TOTP enrollment and their frontend flows remain next work;
+no factor policy is enabled automatically by this upgrade.

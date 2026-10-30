@@ -14,7 +14,8 @@ services:
       - ./db/migrations/003_idempotency.sql:/docker-entrypoint-initdb.d/003_idempotency.sql:ro
       - ./db/migrations/004_local_credentials.sql:/docker-entrypoint-initdb.d/004_local_credentials.sql:ro
       - ./db/migrations/005_jobs.sql:/docker-entrypoint-initdb.d/005_jobs.sql:ro
-      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/006_fixtures.sql:ro
+      - ./db/migrations/006_authentication.sql:/docker-entrypoint-initdb.d/006_authentication.sql:ro
+      - ./db/fixtures.sql:/docker-entrypoint-initdb.d/007_fixtures.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pluto_demo -d pluto_demo"]
       interval: 2s

@@ -134,7 +134,7 @@ func localDatabase(t *testing.T) (*pgxpool.Pool, string) {
 
 	t.Cleanup(pool.Close)
 
-	for _, name := range []string{"migrations/001_initial.sql", "migrations/002_auth_sessions.sql", "migrations/003_idempotency.sql", "migrations/004_local_credentials.sql", "migrations/005_jobs.sql", "fixtures.sql"} {
+	for _, name := range []string{"migrations/001_initial.sql", "migrations/002_auth_sessions.sql", "migrations/003_idempotency.sql", "migrations/004_local_credentials.sql", "migrations/005_jobs.sql", "migrations/006_authentication.sql", "fixtures.sql"} {
 		migration, err := os.ReadFile(filepath.Join("../../db", name))
 		if err != nil {
 			t.Fatal(err)
@@ -308,6 +308,18 @@ func (a lifecycleApp) signin(
 
 	if strings.Contains(w.Body.String(), cookies[0].Value) {
 		t.Fatal("session leaked")
+	}
+
+	var recorded bool
+
+	err := a.pool.QueryRow(context.Background(), `SELECT EXISTS (
+        SELECT 1 FROM pluto_auth_local_sessions s
+        JOIN pluto_auth_accounts a ON a.id = s.account_id
+        WHERE a.email = $1 AND s.primary_method = 'password'
+            AND s.primary_at > '0001-01-01 00:00:00+00'
+    )`, email).Scan(&recorded)
+	if err != nil || !recorded {
+		t.Fatal("sign-in did not persist password authentication evidence", err)
 	}
 
 	return cookies[0].Value

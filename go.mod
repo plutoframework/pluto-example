@@ -7,9 +7,9 @@ require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/plutoframework/pluto-agent v0.1.3
 	github.com/plutoframework/pluto-agent/integrations/otel v0.1.2
-	github.com/plutoframework/pluto-auth v0.3.0
-	github.com/plutoframework/pluto-auth/methods/password v0.3.0
-	github.com/plutoframework/pluto-auth/stores/postgres v0.3.0
+	github.com/plutoframework/pluto-auth v0.4.0
+	github.com/plutoframework/pluto-auth/methods/password v0.4.0
+	github.com/plutoframework/pluto-auth/stores/postgres v0.4.0
 	github.com/plutoframework/pluto-core v0.4.0
 	github.com/plutoframework/pluto-core/stores/postgres v0.1.0
 	github.com/plutoframework/pluto-core/stores/valkey v0.1.0
