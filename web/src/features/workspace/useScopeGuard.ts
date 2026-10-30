@@ -13,11 +13,14 @@ export function useScopeGuard(scope: Scope): () => boolean {
     }),
     [scope.actor, scope.session, scope.organization],
   );
+
   useEffect(() => {
     token.active = true;
+
     return () => {
       token.active = false;
     };
   }, [token]);
+
   return () => token.active;
 }

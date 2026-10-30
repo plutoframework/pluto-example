@@ -8,11 +8,15 @@ export function Notice({
   children: ReactNode;
   tone?: "info" | "error" | "success";
 }) {
+  const statuses = {
+    info: "accent",
+    error: "danger",
+    success: "success",
+  } as const;
+
   return (
     <Alert
-      status={
-        tone === "error" ? "danger" : tone === "success" ? "success" : "accent"
-      }
+      status={statuses[tone]}
       className={`notice notice-${tone}`}
       role={tone === "error" ? "alert" : "status"}
     >
@@ -21,6 +25,7 @@ export function Notice({
     </Alert>
   );
 }
+
 export function Loading({
   label = "Connecting to your workspace…",
 }: {
@@ -33,6 +38,7 @@ export function Loading({
     </div>
   );
 }
+
 export function EmptyState({
   title,
   description,
@@ -53,6 +59,7 @@ export function EmptyState({
     </section>
   );
 }
+
 export function PageHeader({
   eyebrow,
   title,

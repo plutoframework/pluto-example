@@ -1,6 +1,7 @@
 import { expect, test, vi, afterEach } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
 import { sessionOptions } from "./queries";
+
 afterEach(() => vi.unstubAllGlobals());
 
 test("expired account session clears private workspace data", async () => {
@@ -43,7 +44,12 @@ test("account rotation discards old cache before publishing the new identity", a
     ),
   );
   expect(
-    (await client.fetchQuery({ ...sessionOptions(), staleTime: 0 }))?.actor_id,
+    (
+      await client.fetchQuery({
+        ...sessionOptions(),
+        staleTime: 0,
+      })
+    )?.actor_id,
   ).toBe("new-account");
   expect(client.getQueriesData({ queryKey: ["scope"] })).toEqual([]);
   client.clear();

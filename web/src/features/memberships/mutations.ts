@@ -2,8 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, writeHeaders } from "@/api/client";
 import { scopeKey } from "@/features/workspace/public";
 import type { Scope } from "@/features/workspace/public";
+
 export function useChangeRole(scope: Scope) {
   const client = useQueryClient();
+
   return useMutation({
     retry: false,
     mutationFn: ({

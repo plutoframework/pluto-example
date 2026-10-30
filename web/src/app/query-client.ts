@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -8,7 +9,10 @@ export function createQueryClient() {
         gcTime: 60_000,
         refetchOnWindowFocus: true,
       },
-      mutations: { retry: false, gcTime: 0 },
+      mutations: {
+        retry: false,
+        gcTime: 0,
+      },
     },
   });
 }

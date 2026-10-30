@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card, Chip } from "@heroui/react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/features/workspace/public";
@@ -7,11 +8,57 @@ import { Pagination } from "@/shared/ui/Pagination";
 import { date, initials } from "@/shared/lib/format";
 import { nextPage, previousPage } from "@/shared/lib/search";
 import { useAudit } from "../queries";
+
 export function ActivityPage() {
   const { scope } = useWorkspace();
   const search = useSearch({ from: "/activity" });
   const navigate = useNavigate({ from: "/activity" });
   const query = useAudit(scope, search.cursor);
+
+  let content: ReactNode;
+
+  if (query.isPending) {
+    content = <Loading label="Loading activity history…" />;
+  } else if (query.error) {
+    content = <Notice tone="error">{errorMessage(query.error)}</Notice>;
+  } else if (!query.data?.data.length) {
+    content = (
+      <EmptyState
+        title="A clean slate"
+        description="Successful requests and role changes will appear here."
+      />
+    );
+  } else {
+    content = (
+      <ol className="activity-list">
+        {query.data.data.map((event) => (
+          <li key={event.id}>
+            <span className="activity-marker" aria-hidden="true">
+              ↗
+            </span>
+            <div className="activity-copy">
+              <h3>{event.action.replaceAll(/[._]/g, " ")}</h3>
+              <p>
+                <span className="avatar tiny">{initials(event.actor_id)}</span>
+                {event.actor_id === scope.actor ? "You" : "Organization member"}
+                <span className="separator">/</span>
+                <code>{event.resource_id}</code>
+              </p>
+            </div>
+            <div className="activity-time">
+              <Chip color="success" variant="soft" size="sm">
+                {event.outcome}
+              </Chip>
+              <time dateTime={event.occurred_at}>
+                {date(event.occurred_at)}
+              </time>
+            </div>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
   return (
     <>
       <PageHeader
@@ -31,47 +78,7 @@ export function ActivityPage() {
             AUDITED BY PLUTO
           </Chip>
         </div>
-        {query.isPending ? (
-          <Loading label="Loading activity history…" />
-        ) : query.error ? (
-          <Notice tone="error">{errorMessage(query.error)}</Notice>
-        ) : !query.data?.data.length ? (
-          <EmptyState
-            title="A clean slate"
-            description="Successful requests and role changes will appear here."
-          />
-        ) : (
-          <ol className="activity-list">
-            {query.data.data.map((event) => (
-              <li key={event.id}>
-                <span className="activity-marker" aria-hidden="true">
-                  ↗
-                </span>
-                <div className="activity-copy">
-                  <h3>{event.action.replaceAll(/[._]/g, " ")}</h3>
-                  <p>
-                    <span className="avatar tiny">
-                      {initials(event.actor_id)}
-                    </span>
-                    {event.actor_id === scope.actor
-                      ? "You"
-                      : "Organization member"}
-                    <span className="separator">/</span>
-                    <code>{event.resource_id}</code>
-                  </p>
-                </div>
-                <div className="activity-time">
-                  <Chip color="success" variant="soft" size="sm">
-                    {event.outcome}
-                  </Chip>
-                  <time dateTime={event.occurred_at}>
-                    {date(event.occurred_at)}
-                  </time>
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
+        {content}
         <Pagination
           count={query.data?.data.length ?? 0}
           previous={!!search.trail?.length}
@@ -80,10 +87,11 @@ export function ActivityPage() {
             void navigate({ search: (old) => previousPage(old) });
           }}
           onNext={() => {
-            if (query.data)
+            if (query.data) {
               void navigate({
                 search: (old) => nextPage(old, query.data!.page.next_cursor),
               });
+            }
           }}
         />
       </Card>

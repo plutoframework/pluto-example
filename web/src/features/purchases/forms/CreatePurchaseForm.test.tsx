@@ -7,6 +7,7 @@ test("decimal money stays in exact integer cents and rejects ambiguous input", (
   expect(parseAmount("0.01")).toBe(1);
   expect(parseAmount("19.99")).toBe(1999);
   expect(parseAmount("1000000.00")).toBe(100_000_000);
+
   for (const input of [
     "0",
     "-1",
@@ -18,8 +19,10 @@ test("decimal money stays in exact integer cents and rejects ambiguous input", (
     "NaN",
     ".10",
     "1.",
-  ])
+  ]) {
     expect(parseAmount(input)).toBeNull();
+  }
+
   for (let cents = 1; cents < 100000; cents += 977) {
     const value = `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, "0")}`;
     expect(parseAmount(value)).toBe(cents);

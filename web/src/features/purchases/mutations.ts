@@ -6,39 +6,68 @@ import type { Scope } from "@/features/workspace/public";
 import type { CreatePurchase } from "./types";
 import { createDecisionFlow } from "./flows/decision";
 
-type Command = { key: string; signal?: AbortSignal } & (
-  | { action: "create"; input: CreatePurchase }
-  | { action: "submit"; id: string }
-  | { action: "decide"; id: string; decision: "approved" | "rejected" }
+type Command = {
+  key: string;
+  signal?: AbortSignal;
+} & (
+  | {
+      action: "create";
+      input: CreatePurchase;
+    }
+  | {
+      action: "submit";
+      id: string;
+    }
+  | {
+      action: "decide";
+      id: string;
+      decision: "approved" | "rejected";
+    }
 );
+
 export function usePurchaseCommand(scope: Scope) {
   const client = useQueryClient();
+
   return useMutation({
     retry: false,
     mutationFn: async (command: Command) => {
       const header = writeHeaders(scope.organization, command.key);
+
       if (command.action === "create") {
         const { data } = await api.POST("/api/purchases", {
           params: { header },
           signal: command.signal,
           body: command.input,
         });
-        if (!data) throw new Error("Purchase response missing");
+
+        if (!data) {
+          throw new Error("Purchase response missing");
+        }
+
         return data.data;
       }
-      const params = { header, path: { purchaseID: command.id } };
+
+      const params = {
+        header,
+        path: { purchaseID: command.id },
+      };
+
       const { data } =
         command.action === "submit"
           ? await api.POST("/api/purchases/{purchaseID}/submit", {
-              params,
-              signal: command.signal,
-            })
+            params,
+            signal: command.signal,
+          })
           : await api.POST("/api/purchases/{purchaseID}/decision", {
-              params,
-              signal: command.signal,
-              body: { decision: command.decision },
-            });
-      if (!data) throw new Error("Purchase response missing");
+            params,
+            signal: command.signal,
+            body: { decision: command.decision },
+          });
+
+      if (!data) {
+        throw new Error("Purchase response missing");
+      }
+
       return data.data;
     },
     onSettled: async () => {
@@ -46,6 +75,7 @@ export function usePurchaseCommand(scope: Scope) {
     },
   });
 }
+
 export function usePurchaseExport(scope: Scope) {
   return useMutation({
     retry: false,
@@ -53,7 +83,11 @@ export function usePurchaseExport(scope: Scope) {
       const { data } = await api.GET("/api/purchases/export", {
         params: { header: organizationHeaders(scope.organization) },
       });
-      if (!data) throw new Error("Export response missing");
+
+      if (!data) {
+        throw new Error("Export response missing");
+      }
+
       return data.data;
     },
   });
@@ -62,7 +96,10 @@ export function usePurchaseExport(scope: Scope) {
 export function usePurchaseReview(scope: Scope) {
   return useMutation({
     retry: false,
-    mutationFn: async ({ id, signal }: { id: string; signal: AbortSignal }) => {
+    mutationFn: async ({ id, signal }: {
+      id: string;
+      signal: AbortSignal;
+    }) => {
       const { data } = await api.POST("/api/purchases/{purchaseID}/review", {
         signal,
         params: {
@@ -70,7 +107,11 @@ export function usePurchaseReview(scope: Scope) {
           path: { purchaseID: id },
         },
       });
-      if (!data) throw new Error("Review response missing");
+
+      if (!data) {
+        throw new Error("Review response missing");
+      }
+
       return data.data;
     },
   });
@@ -80,7 +121,11 @@ export function useReviewController(scope: Scope) {
   const review = usePurchaseReview(scope);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
-  return { review, controller };
+
+  return {
+    review,
+    controller,
+  };
 }
 
 // Constructors are pure, but controller ownership follows committed lifecycles.
@@ -92,12 +137,25 @@ export function usePurchaseDecision(scope: Scope, id: string) {
     identity: string;
     flow: ReturnType<typeof createDecisionFlow>;
   } | null>(null);
+
   useEffect(() => {
     const flow = createDecisionFlow((verdict, key, signal) =>
-      mutateAsync({ action: "decide", id, decision: verdict, key, signal }),
+      mutateAsync({
+        action: "decide",
+        id,
+        decision: verdict,
+        key,
+        signal,
+      }),
     );
-    setOwned({ identity, flow });
+
+    setOwned({
+      identity,
+      flow,
+    });
+
     return () => flow.dispose();
   }, [identity, id, mutateAsync]);
+
   return owned?.identity === identity ? owned.flow : null;
 }

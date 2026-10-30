@@ -11,14 +11,22 @@ export function usePurchases(scope: Scope, cursor?: string) {
         signal,
         params: {
           header: organizationHeaders(scope.organization),
-          query: { limit: 20, cursor },
+          query: {
+            limit: 20,
+            cursor,
+          },
         },
       });
-      if (!data) throw new Error("Purchase page missing");
+
+      if (!data) {
+        throw new Error("Purchase page missing");
+      }
+
       return data;
     },
   });
 }
+
 export function usePurchase(scope: Scope, id: string) {
   return useQuery({
     queryKey: [...scopeKey(scope), "purchase", id],
@@ -30,8 +38,11 @@ export function usePurchase(scope: Scope, id: string) {
           path: { purchaseID: id },
         },
       });
-      if (!data || data.data.organization_id !== scope.organization)
+
+      if (!data || data.data.organization_id !== scope.organization) {
         throw new Error("Purchase scope changed");
+      }
+
       return data.data;
     },
   });

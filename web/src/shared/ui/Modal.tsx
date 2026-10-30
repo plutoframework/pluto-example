@@ -14,7 +14,9 @@ export function Modal({
     <HeroModal
       isOpen
       onOpenChange={(open) => {
-        if (!open) onClose();
+        if (!open) {
+          onClose();
+        }
       }}
     >
       <HeroModal.Backdrop className="purchase-modal-backdrop">

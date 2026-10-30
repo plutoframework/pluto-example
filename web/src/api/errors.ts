@@ -13,8 +13,10 @@ export class ApiError extends Error {
 }
 
 export function errorMessage(error: unknown): string {
-  if (!(error instanceof ApiError))
+  if (!(error instanceof ApiError)) {
     return "We could not reach Pluto. Check your connection and try again.";
+  }
+
   switch (error.status) {
     case 400:
       return "Check the values and try again. The server could not accept this request.";

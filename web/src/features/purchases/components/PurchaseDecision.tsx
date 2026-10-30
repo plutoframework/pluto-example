@@ -14,9 +14,11 @@ export function PurchaseDecisionControls({
     // Expected API errors are flow events; reset if an unexpected contract fails.
     void flow.send(event).catch(() => flow.reset());
   };
+
   if (state.status === "submitting") {
     return <Button isDisabled>Recording decision…</Button>;
   }
+
   if (state.status === "succeeded") {
     return (
       <Notice tone="success">
@@ -24,6 +26,7 @@ export function PurchaseDecisionControls({
       </Notice>
     );
   }
+
   if (state.status === "failed") {
     return (
       <div>
@@ -35,17 +38,28 @@ export function PurchaseDecisionControls({
       </div>
     );
   }
+
   return (
     <>
       <Button
         variant="primary"
-        onClick={() => send({ type: "choose", verdict: "approved" })}
+        onClick={() =>
+          send({
+            type: "choose",
+            verdict: "approved",
+          })
+        }
       >
         Approve request
       </Button>
       <Button
         variant="danger-soft"
-        onClick={() => send({ type: "choose", verdict: "rejected" })}
+        onClick={() =>
+          send({
+            type: "choose",
+            verdict: "rejected",
+          })
+        }
       >
         Decline request
       </Button>
@@ -65,7 +79,10 @@ export function PurchaseDecisionControls({
             <Button
               variant="primary"
               onClick={() =>
-                send({ type: "confirm", requestId: crypto.randomUUID() })
+                send({
+                  type: "confirm",
+                  requestId: crypto.randomUUID(),
+                })
               }
             >
               {state.verdict === "approved"

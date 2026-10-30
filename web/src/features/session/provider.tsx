@@ -10,9 +10,11 @@ type SessionState = {
   error: unknown;
   refresh: () => void;
 };
+
 const SessionContext = createContext<SessionState | null>(null);
 export function SessionProvider({ children }: { children: ReactNode }) {
   const query = useQuery(sessionOptions());
+
   return (
     <SessionContext.Provider
       value={{
@@ -28,8 +30,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     </SessionContext.Provider>
   );
 }
+
 export function useSession(): SessionState {
   const value = useContext(SessionContext);
-  if (!value) throw new Error("SessionProvider is required");
+
+  if (!value) {
+    throw new Error("SessionProvider is required");
+  }
+
   return value;
 }

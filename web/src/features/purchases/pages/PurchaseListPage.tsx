@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   Button,
   Card,
@@ -34,7 +35,11 @@ export function PurchaseListPage() {
   const command = usePurchaseCommand(scope);
   const exporter = usePurchaseExport(scope);
   const [creating, setCreating] = useState(false);
-  const intent = useRef<{ signature: string; key: string } | null>(null);
+  const intent = useRef<{
+    signature: string;
+    key: string;
+  } | null>(null);
+
   const records = query.data?.data ?? [];
   const visible = records.filter(
     (record) =>
@@ -42,10 +47,52 @@ export function PurchaseListPage() {
       (!search.q ||
         record.title.toLowerCase().includes(search.q.toLowerCase())),
   );
+
   const submitted = records.filter(
     (record) => record.status === "submitted",
   ).length;
+
   const drafts = records.filter((record) => record.status === "draft").length;
+
+  let content: ReactNode;
+
+  if (query.isPending) {
+    content = <Loading label="Loading purchase requests…" />;
+  } else if (query.error) {
+    content = (
+      <Notice tone="error">
+        {errorMessage(query.error)}{" "}
+        <Button
+          className="text-button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            void query.refetch();
+          }}
+        >
+          Try again
+        </Button>
+      </Notice>
+    );
+  } else if (visible.length) {
+    content = <PurchaseTable purchases={visible} actor={scope.actor} />;
+  } else {
+    content = (
+      <EmptyState
+        title={
+          records.length
+            ? "No matches on this page"
+            : "Your next idea starts here"
+        }
+        description={
+          records.length
+            ? "Try another search or status, or move to another page."
+            : "Create a draft request and give your team something to move forward."
+        }
+      />
+    );
+  }
+
   return (
     <>
       <PageHeader
@@ -107,7 +154,11 @@ export function PurchaseListPage() {
               onClick={async () => {
                 try {
                   const exported = await exporter.mutateAsync();
-                  if (!isCurrentScope()) return;
+
+                  if (!isCurrentScope()) {
+                    return;
+                  }
+
                   downloadJson(
                     exported,
                     `${scope.organization}-purchases.json`,
@@ -131,7 +182,10 @@ export function PurchaseListPage() {
             value={search.q ?? ""}
             onChange={(value) => {
               void navigate({
-                search: (old) => ({ ...old, q: value || undefined }),
+                search: (old) => ({
+                  ...old,
+                  q: value || undefined,
+                }),
                 replace: true,
               });
             }}
@@ -144,7 +198,10 @@ export function PurchaseListPage() {
             className="filter-select"
             value={search.status ?? "all"}
             onChange={(value) => {
-              if (typeof value !== "string") return;
+              if (typeof value !== "string") {
+                return;
+              }
+
               void navigate({
                 search: (old) => ({
                   ...old,
@@ -176,55 +233,28 @@ export function PurchaseListPage() {
             </Select.Popover>
           </Select>
         </div>
-        {query.isPending ? (
-          <Loading label="Loading purchase requests…" />
-        ) : query.error ? (
-          <Notice tone="error">
-            {errorMessage(query.error)}{" "}
-            <Button
-              className="text-button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                void query.refetch();
-              }}
-            >
-              Try again
-            </Button>
-          </Notice>
-        ) : visible.length ? (
-          <PurchaseTable purchases={visible} actor={scope.actor} />
-        ) : (
-          <EmptyState
-            title={
-              records.length
-                ? "No matches on this page"
-                : "Your next idea starts here"
-            }
-            description={
-              records.length
-                ? "Try another search or status, or move to another page."
-                : "Create a draft request and give your team something to move forward."
-            }
-          />
-        )}
+        {content}
         <Pagination
           count={visible.length}
           previous={!!search.trail?.length}
           more={query.data?.page.has_more ?? false}
           onPrevious={() => {
             void navigate({
-              search: (old) => ({ ...old, ...previousPage(old) }),
+              search: (old) => ({
+                ...old,
+                ...previousPage(old),
+              }),
             });
           }}
           onNext={() => {
-            if (query.data)
+            if (query.data) {
               void navigate({
                 search: (old) => ({
                   ...old,
                   ...nextPage(old, query.data!.page.next_cursor),
                 }),
               });
+            }
           }}
         />
       </Card>
@@ -246,15 +276,25 @@ export function PurchaseListPage() {
             onCancel={() => setCreating(false)}
             onSubmit={async (input) => {
               const signature = JSON.stringify(input);
-              if (intent.current?.signature !== signature)
-                intent.current = { signature, key: crypto.randomUUID() };
+
+              if (intent.current?.signature !== signature) {
+                intent.current = {
+                  signature,
+                  key: crypto.randomUUID(),
+                };
+              }
+
               try {
                 const record = await command.mutateAsync({
                   action: "create",
                   input,
                   key: intent.current.key,
                 });
-                if (!isCurrentScope()) return;
+
+                if (!isCurrentScope()) {
+                  return;
+                }
+
                 setCreating(false);
                 void navigate({
                   to: "/purchases/$purchaseId",

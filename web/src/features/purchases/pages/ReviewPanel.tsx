@@ -5,8 +5,12 @@ import { Notice } from "@/shared/ui/feedback";
 import { errorMessage } from "@/api/errors";
 import { useReviewController } from "../mutations";
 
-export function ReviewPanel({ scope, id }: { scope: Scope; id: string }) {
+export function ReviewPanel({ scope, id }: {
+  scope: Scope;
+  id: string;
+}) {
   const { review, controller } = useReviewController(scope);
+
   return (
     <Card className="panel detail-card">
       <h2>Read-only purchase review</h2>
@@ -19,7 +23,10 @@ export function ReviewPanel({ scope, id }: { scope: Scope; id: string }) {
           isDisabled={review.isPending}
           onClick={() => {
             controller.current = new AbortController();
-            review.mutate({ id, signal: controller.current.signal });
+            review.mutate({
+              id,
+              signal: controller.current.signal,
+            });
           }}
         >
           {review.isPending ? "Reviewing…" : "Review purchase"}

@@ -11,11 +11,16 @@ export function sessionOptions() {
     queryFn: async ({ signal, client }) => {
       try {
         const { data } = await api.GET("/auth/session", { signal });
-        if (!data) throw new Error("Session response missing");
+
+        if (!data) {
+          throw new Error("Session response missing");
+        }
+
         const previous = client.getQueryData<{
           id: string;
           actor_id: string;
         } | null>(["session"]);
+
         if (
           previous &&
           (previous.id !== data.data.id ||
@@ -24,13 +29,16 @@ export function sessionOptions() {
           await client.cancelQueries({ queryKey: ["scope"] });
           client.removeQueries({ queryKey: ["scope"] });
         }
+
         return data.data;
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
           await client.cancelQueries({ queryKey: ["scope"] });
           client.removeQueries({ queryKey: ["scope"] });
+
           return null;
         }
+
         throw error;
       }
     },

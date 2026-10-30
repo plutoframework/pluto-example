@@ -5,6 +5,7 @@ import type { AuthInput, AuthMode } from "./types";
 
 export function useAuthentication() {
   const queryClient = useQueryClient();
+
   return useMutation({
     retry: false,
     gcTime: 0,
@@ -16,16 +17,23 @@ export function useAuthentication() {
       input: AuthInput;
     }) => {
       const params = { header: authHeaders() };
+
       switch (mode) {
         case "signin":
           return api.POST("/auth/signin", {
             params,
-            body: { email: input.email, password: input.password },
+            body: {
+              email: input.email,
+              password: input.password,
+            },
           });
         case "enroll":
           return api.POST("/auth/enroll", {
             params,
-            body: { email: input.email, password: input.password },
+            body: {
+              email: input.email,
+              password: input.password,
+            },
           });
         case "verify":
           return api.POST("/auth/verify", {
@@ -45,7 +53,10 @@ export function useAuthentication() {
         case "reset":
           return api.POST("/auth/reset", {
             params,
-            body: { token: input.token, password: input.password },
+            body: {
+              token: input.token,
+              password: input.password,
+            },
           });
       }
     },
@@ -56,7 +67,10 @@ export function useAuthentication() {
           predicate: (q) => q.queryKey[0] !== "session",
         });
         queryClient.setQueryData(["session"], null);
-        await queryClient.fetchQuery({ ...sessionOptions(), staleTime: 0 });
+        await queryClient.fetchQuery({
+          ...sessionOptions(),
+          staleTime: 0,
+        });
       }
     },
   });
@@ -64,6 +78,7 @@ export function useAuthentication() {
 
 export function useSignOut() {
   const client = useQueryClient();
+
   return useMutation({
     gcTime: 0,
     retry: false,

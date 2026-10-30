@@ -11,6 +11,7 @@ import { createDecisionFlow } from "../flows/decision";
 
 test("confirmation, cancellation and decline use the real HeroUI controls", async () => {
   const write = vi.fn(async () => {});
+
   const flow = createDecisionFlow(write);
   render(<PurchaseDecisionControls flow={flow} />);
   fireEvent.click(screen.getByRole("button", { name: "Approve request" }));

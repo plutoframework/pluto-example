@@ -17,14 +17,46 @@ export function PurchaseDetailPage() {
   const query = usePurchase(scope, purchaseId);
   const command = usePurchaseCommand(scope);
   const keys = useRef(new Map<string, string>());
-  if (query.isPending) return <Loading label="Opening purchase request…" />;
-  if (query.error || !query.data)
+
+  if (query.isPending) {
+    return <Loading label="Opening purchase request…" />;
+  }
+
+  if (query.error || !query.data) {
     return <Notice tone="error">{errorMessage(query.error)}</Notice>;
+  }
+
   const record = query.data;
+  const nextSteps: Record<
+    string,
+    {
+      title: string;
+      description: string;
+    }
+  > = {
+    draft: {
+      title: "Ready when you are.",
+      description: "Submit your draft for another team member to review.",
+    },
+    submitted: {
+      title: "A considered decision.",
+      description:
+        "An authorized reviewer can approve or decline this request. Creators cannot review their own requests.",
+    },
+  };
+
+  const nextStep = nextSteps[record.status] ?? {
+    title: "Decision recorded.",
+    description:
+      "This request has reached its final state. Its history remains in the activity log.",
+  };
+
   const own = record.creator_id === scope.actor;
   const submit = async () => {
-    if (!keys.current.has("submit"))
+    if (!keys.current.has("submit")) {
       keys.current.set("submit", crypto.randomUUID());
+    }
+
     try {
       await command.mutateAsync({
         action: "submit",
@@ -35,6 +67,7 @@ export function PurchaseDetailPage() {
       /* Display sanitized error and refresh canonical server state. */
     }
   };
+
   return (
     <>
       <Link className="back-link" to="/">
@@ -74,20 +107,8 @@ export function PurchaseDetailPage() {
         </Card>
         <Card className="panel detail-card">
           <span className="eyebrow">NEXT STEP</span>
-          <h2>
-            {record.status === "draft"
-              ? "Ready when you are."
-              : record.status === "submitted"
-                ? "A considered decision."
-                : "Decision recorded."}
-          </h2>
-          <p className="muted">
-            {record.status === "draft"
-              ? "Submit your draft for another team member to review."
-              : record.status === "submitted"
-                ? "An authorized reviewer can approve or decline this request. Creators cannot review their own requests."
-                : "This request has reached its final state. Its history remains in the activity log."}
-          </p>
+          <h2>{nextStep.title}</h2>
+          <p className="muted">{nextStep.description}</p>
           {command.error && (
             <Notice tone="error">{errorMessage(command.error)}</Notice>
           )}

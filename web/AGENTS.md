@@ -21,3 +21,10 @@ Theme configuration lives in the parent pluto.toml. Never hand-edit
 src/generated/theme*.css or public/pluto-theme.js. Custom selectors belong in
 src/styles/overrides.css; regenerate with npm run theme:generate and verify with
 npm run theme:check. Do not import the TOML document into browser code.
+
+Use `npm run fmt` for the canonical expanded style, then `npm run lint` to verify.
+Prettier alone is not the final formatter for TS/TSX. scripts/readability.mjs owns
+mandatory braces, multiline blocks, object/type member expansion and logical
+blank lines. Nested ternaries require explicit branches or named mappings.
+Do not collapse code to fit the line ceiling or disable a rule to avoid splitting
+responsibilities. Formatter regression tests run with the normal test command.

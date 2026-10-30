@@ -1,3 +1,4 @@
+import { readability } from "./scripts/readability.mjs";
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import hooks from "eslint-plugin-react-hooks";
@@ -16,8 +17,9 @@ export default tseslint.config(
   {
     files: ["**/*.{ts,tsx}"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    plugins: { "react-hooks": hooks },
+    plugins: { ...readability.plugins, "react-hooks": hooks },
     rules: {
+      ...readability.rules,
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "error",
       "@typescript-eslint/no-explicit-any": "error",

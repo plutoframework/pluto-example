@@ -4,6 +4,7 @@ export function money(cents: number): string {
     currency: "USD",
   }).format(cents / 100);
 }
+
 export function date(value: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -11,6 +12,7 @@ export function date(value: string): string {
     year: "numeric",
   }).format(new Date(value));
 }
+
 export function initials(value: string): string {
   return value
     .split(/[\s@._-]+/)

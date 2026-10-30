@@ -4,6 +4,7 @@ import { date, money } from "@/shared/lib/format";
 import { initials } from "@/shared/lib/format";
 import type { Purchase } from "../types";
 import { PurchaseStatus } from "./PurchaseStatus";
+
 export function PurchaseTable({
   purchases,
   actor,

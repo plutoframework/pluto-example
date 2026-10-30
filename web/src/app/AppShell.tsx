@@ -11,13 +11,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
   const navigate = useNavigate();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const section =
-    pathname === "/members"
-      ? "People & roles"
-      : pathname === "/activity"
-        ? "Activity"
-        : "Purchasing";
+  const sections: Record<string, string> = {
+    "/members": "People & roles",
+    "/activity": "Activity",
+  };
+
+  const section = sections[pathname] ?? "Purchasing";
+
   const signOut = useSignOut();
+
   return (
     <div className="application-layout">
       <aside className="sidebar">
@@ -87,10 +89,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="organization-select"
               value={workspace.scope.organization}
               onChange={(value) => {
-                if (typeof value !== "string") return;
-                void workspace
-                  .selectOrganization(value)
-                  .then(() => navigate({ to: "/", search: {} }));
+                if (typeof value !== "string") {
+                  return;
+                }
+
+                void workspace.selectOrganization(value).then(() =>
+                  navigate({
+                    to: "/",
+                    search: {},
+                  }),
+                );
               }}
             >
               <Select.Trigger aria-label="Organization">

@@ -3,28 +3,52 @@ import type { Decision } from "@plutoframework/frontend/state";
 import { errorMessage } from "@/api/errors";
 
 export type Verdict = "approved" | "rejected";
+
 export type DecisionState =
   | { readonly status: "viewing" }
-  | { readonly status: "confirming"; readonly verdict: Verdict }
+  | {
+      readonly status: "confirming";
+      readonly verdict: Verdict;
+    }
   | {
       readonly status: "submitting";
       readonly verdict: Verdict;
       readonly requestId: string;
     }
-  | { readonly status: "succeeded"; readonly verdict: Verdict }
-  | { readonly status: "failed"; readonly message: string };
+  | {
+      readonly status: "succeeded";
+      readonly verdict: Verdict;
+    }
+  | {
+      readonly status: "failed";
+      readonly message: string;
+    };
+
 export type DecisionEvent =
-  | { readonly type: "choose"; readonly verdict: Verdict }
+  | {
+      readonly type: "choose";
+      readonly verdict: Verdict;
+    }
   | { readonly type: "cancel" }
-  | { readonly type: "confirm"; readonly requestId: string }
-  | { readonly type: "resolved"; readonly requestId: string }
+  | {
+      readonly type: "confirm";
+      readonly requestId: string;
+    }
+  | {
+      readonly type: "resolved";
+      readonly requestId: string;
+    }
   | {
       readonly type: "failed";
       readonly requestId: string;
       readonly message: string;
     }
   | { readonly type: "dismiss" };
-type Effect = { readonly verdict: Verdict; readonly requestId: string };
+
+type Effect = {
+  readonly verdict: Verdict;
+  readonly requestId: string;
+};
 
 export function decisionTransition(
   current: DecisionState,
@@ -35,13 +59,22 @@ export function decisionTransition(
       if (event.type === "choose") {
         return {
           accepted: true,
-          state: { status: "confirming", verdict: event.verdict },
+          state: {
+            status: "confirming",
+            verdict: event.verdict,
+          },
         };
       }
+
       break;
     case "confirming":
-      if (event.type === "cancel")
-        return { accepted: true, state: { status: "viewing" } };
+      if (event.type === "cancel") {
+        return {
+          accepted: true,
+          state: { status: "viewing" },
+        };
+      }
+
       if (event.type === "confirm" && event.requestId !== "") {
         return {
           accepted: true,
@@ -50,32 +83,53 @@ export function decisionTransition(
             verdict: current.verdict,
             requestId: event.requestId,
           },
-          effect: { verdict: current.verdict, requestId: event.requestId },
+          effect: {
+            verdict: current.verdict,
+            requestId: event.requestId,
+          },
         };
       }
+
       break;
     case "submitting":
       if (event.type === "resolved" && event.requestId === current.requestId) {
         return {
           accepted: true,
-          state: { status: "succeeded", verdict: current.verdict },
+          state: {
+            status: "succeeded",
+            verdict: current.verdict,
+          },
         };
       }
+
       if (event.type === "failed" && event.requestId === current.requestId) {
         return {
           accepted: true,
-          state: { status: "failed", message: event.message },
+          state: {
+            status: "failed",
+            message: event.message,
+          },
         };
       }
+
       break;
     case "failed":
-      if (event.type === "dismiss")
-        return { accepted: true, state: { status: "viewing" } };
+      if (event.type === "dismiss") {
+        return {
+          accepted: true,
+          state: { status: "viewing" },
+        };
+      }
+
       break;
     case "succeeded":
       break;
   }
-  return { accepted: false, state: current };
+
+  return {
+    accepted: false,
+    state: current,
+  };
 }
 
 export function createDecisionFlow(
@@ -88,16 +142,19 @@ export function createDecisionFlow(
 ) {
   // Retain the same business key on retries; UI correlation IDs are separate.
   const keys = new Map<Verdict, string>();
+
   return createMachine<DecisionState, DecisionEvent, Effect>({
     initial: { status: "viewing" },
     transition: decisionTransition,
     async execute(effect, { signal, send }) {
       try {
         let key = keys.get(effect.verdict);
+
         if (!key) {
           key = newKey();
           keys.set(effect.verdict, key);
         }
+
         await decide(effect.verdict, key, signal);
       } catch (error) {
         await send({
@@ -105,9 +162,14 @@ export function createDecisionFlow(
           requestId: effect.requestId,
           message: errorMessage(error),
         });
+
         return;
       }
-      await send({ type: "resolved", requestId: effect.requestId });
+
+      await send({
+        type: "resolved",
+        requestId: effect.requestId,
+      });
     },
   });
 }

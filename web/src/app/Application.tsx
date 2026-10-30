@@ -9,8 +9,12 @@ import { AppShell } from "./AppShell";
 function WorkspaceContent() {
   const { pending, error } = useWorkspace();
   const { session, refresh } = useSession();
-  if (pending) return <Loading />;
-  if (error)
+
+  if (pending) {
+    return <Loading />;
+  }
+
+  if (error) {
     return (
       <EmptyState
         title="Let's find your workspace."
@@ -37,17 +41,23 @@ function WorkspaceContent() {
         </Button>
       </EmptyState>
     );
+  }
+
   return <Outlet />;
 }
+
 export function Application() {
   const { session, pending, error, refresh } = useSession();
-  if (pending)
+
+  if (pending) {
     return (
       <main className="full-loading">
         <Loading label="Finding your session…" />
       </main>
     );
-  if (error)
+  }
+
+  if (error) {
     return (
       <main className="full-loading">
         <Notice tone="error">
@@ -63,7 +73,12 @@ export function Application() {
         </Notice>
       </main>
     );
-  if (!session) return <AuthPage />;
+  }
+
+  if (!session) {
+    return <AuthPage />;
+  }
+
   return (
     <WorkspaceProvider
       key={`${session.actor_id}:${session.id}`}

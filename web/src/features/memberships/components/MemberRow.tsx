@@ -2,6 +2,7 @@ import { Avatar, Button, Label, ListBox, Select, Table } from "@heroui/react";
 import { useState } from "react";
 import { initials } from "@/shared/lib/format";
 import type { Membership, RoleOption } from "../types";
+
 export function MemberRow({
   member,
   roles,
@@ -16,6 +17,7 @@ export function MemberRow({
   onChangeRole: (role: string) => Promise<void>;
 }) {
   const [role, setRole] = useState(member.role);
+
   return (
     <Table.Row id={member.actor_id} data-testid={`member-${member.actor_id}`}>
       <Table.Cell>
@@ -41,7 +43,9 @@ export function MemberRow({
           value={role}
           isDisabled={self || pending}
           onChange={(value) => {
-            if (typeof value === "string") setRole(value);
+            if (typeof value === "string") {
+              setRole(value);
+            }
           }}
           className="role-select"
         >

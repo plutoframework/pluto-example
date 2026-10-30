@@ -15,6 +15,7 @@ type WorkspaceState = {
   selectOrganization: (id: string) => Promise<void>;
   can: (permission: string) => boolean;
 };
+
 const WorkspaceContext = createContext<WorkspaceState | null>(null);
 export function WorkspaceProvider({
   session,
@@ -26,17 +27,26 @@ export function WorkspaceProvider({
   const [organization, setOrganization] = useState("northstar");
   const client = useQueryClient();
   const scope = useMemo(
-    () => ({ actor: session.actor_id, session: session.id, organization }),
+    () => ({
+      actor: session.actor_id,
+      session: session.id,
+      organization,
+    }),
     [session.actor_id, session.id, organization],
   );
+
   const queries = useWorkspaceQueries(scope);
   const selectOrganization = async (id: string) => {
-    if (id === organization) return;
+    if (id === organization) {
+      return;
+    }
+
     await client.cancelQueries({ queryKey: ["scope"] });
     client.removeQueries({ queryKey: ["scope"] });
     client.getMutationCache().clear();
     setOrganization(id);
   };
+
   return (
     <WorkspaceContext.Provider
       value={{
@@ -62,8 +72,13 @@ export function WorkspaceProvider({
     </WorkspaceContext.Provider>
   );
 }
+
 export function useWorkspace(): WorkspaceState {
   const value = useContext(WorkspaceContext);
-  if (!value) throw new Error("WorkspaceProvider is required");
+
+  if (!value) {
+    throw new Error("WorkspaceProvider is required");
+  }
+
   return value;
 }

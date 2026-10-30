@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Card, Chip, Table } from "@heroui/react";
 import { useRef } from "react";
 import { useSearch, useNavigate } from "@tanstack/react-router";
@@ -9,6 +10,7 @@ import { nextPage, previousPage } from "@/shared/lib/search";
 import { useMemberships } from "../queries";
 import { useChangeRole } from "../mutations";
 import { MemberRow } from "../components/MemberRow";
+
 export function MembersPage() {
   const { scope, can, access } = useWorkspace();
   const search = useSearch({ from: "/members" });
@@ -16,13 +18,72 @@ export function MembersPage() {
   const query = useMemberships(scope, search.cursor, can("memberships:manage"));
   const mutation = useChangeRole(scope);
   const intents = useRef(new Map<string, string>());
-  if (!can("memberships:manage"))
+
+  if (!can("memberships:manage")) {
     return (
       <EmptyState
         title="A little outside your orbit"
         description="Organization membership management requires an administrator. Your other workspace features remain available."
       />
     );
+  }
+
+  let content: ReactNode;
+
+  if (query.isPending) {
+    content = <Loading label="Loading organization members…" />;
+  } else if (query.error) {
+    content = <Notice tone="error">{errorMessage(query.error)}</Notice>;
+  } else {
+    content = (
+      <Table className="members-table">
+        <Table.ScrollContainer
+          className="table-scroll"
+          tabIndex={0}
+          role="region"
+          aria-label="Organization members; scroll horizontally for all columns"
+        >
+          <Table.Content aria-label="Organization members">
+            <Table.Header>
+              <Table.Column isRowHeader>MEMBER</Table.Column>
+              <Table.Column>ACCOUNT</Table.Column>
+              <Table.Column>ROLE</Table.Column>
+              <Table.Column className="numeric">ACTION</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {query.data?.data.map((member) => (
+                <MemberRow
+                  key={`${member.actor_id}:${member.role}`}
+                  member={member}
+                  roles={access?.roles ?? []}
+                  self={member.actor_id === scope.actor}
+                  pending={mutation.isPending}
+                  onChangeRole={async (role) => {
+                    const signature = `${member.actor_id}:${role}`;
+
+                    if (!intents.current.has(signature)) {
+                      intents.current.set(signature, crypto.randomUUID());
+                    }
+
+                    try {
+                      await mutation.mutateAsync({
+                        actor: member.actor_id,
+                        role,
+                        key: intents.current.get(signature)!,
+                      });
+                    } catch {
+                      /* Display server policy failure above. */
+                    }
+                  }}
+                />
+              ))}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+      </Table>
+    );
+  }
+
   return (
     <>
       <PageHeader
@@ -43,54 +104,7 @@ export function MembersPage() {
             ADMINISTRATOR ACCESS
           </Chip>
         </div>
-        {query.isPending ? (
-          <Loading label="Loading organization members…" />
-        ) : query.error ? (
-          <Notice tone="error">{errorMessage(query.error)}</Notice>
-        ) : (
-          <Table className="members-table">
-            <Table.ScrollContainer
-              className="table-scroll"
-              tabIndex={0}
-              role="region"
-              aria-label="Organization members; scroll horizontally for all columns"
-            >
-              <Table.Content aria-label="Organization members">
-                <Table.Header>
-                  <Table.Column isRowHeader>MEMBER</Table.Column>
-                  <Table.Column>ACCOUNT</Table.Column>
-                  <Table.Column>ROLE</Table.Column>
-                  <Table.Column className="numeric">ACTION</Table.Column>
-                </Table.Header>
-                <Table.Body>
-                  {query.data?.data.map((member) => (
-                    <MemberRow
-                      key={`${member.actor_id}:${member.role}`}
-                      member={member}
-                      roles={access?.roles ?? []}
-                      self={member.actor_id === scope.actor}
-                      pending={mutation.isPending}
-                      onChangeRole={async (role) => {
-                        const signature = `${member.actor_id}:${role}`;
-                        if (!intents.current.has(signature))
-                          intents.current.set(signature, crypto.randomUUID());
-                        try {
-                          await mutation.mutateAsync({
-                            actor: member.actor_id,
-                            role,
-                            key: intents.current.get(signature)!,
-                          });
-                        } catch {
-                          /* Display server policy failure above. */
-                        }
-                      }}
-                    />
-                  ))}
-                </Table.Body>
-              </Table.Content>
-            </Table.ScrollContainer>
-          </Table>
-        )}
+        {content}
         <Pagination
           count={query.data?.data.length ?? 0}
           previous={!!search.trail?.length}
@@ -99,10 +113,11 @@ export function MembersPage() {
             void navigate({ search: (old) => previousPage(old) });
           }}
           onNext={() => {
-            if (query.data)
+            if (query.data) {
               void navigate({
                 search: (old) => nextPage(old, query.data!.page.next_cursor),
               });
+            }
           }}
         />
       </Card>

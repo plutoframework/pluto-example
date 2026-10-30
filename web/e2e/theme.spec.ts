@@ -11,14 +11,19 @@ test("TOML theme reloads, follows system changes and respects authored CSS", asy
   const overrides = fileURLToPath(
     new URL("../src/styles/overrides.css", import.meta.url),
   );
+
   const original = readFileSync(config, "utf8");
   const originalCSS = readFileSync(overrides, "utf8");
   const manifest = parse(original);
+
   try {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "Sign in", exact: true }),
+      page.getByRole("heading", {
+        name: "Sign in",
+        exact: true,
+      }),
     ).toBeVisible();
     // This test modifies only the isolated example's build-time theme. Restore
     // the original bytes, including comments and authored CSS, even on failure.
@@ -33,6 +38,7 @@ test("TOML theme reloads, follows system changes and respects authored CSS", asy
       root.evaluate((element) =>
         getComputedStyle(element).getPropertyValue("--accent").trim(),
       );
+
     await expect(root).toHaveAttribute("data-theme", "dark");
     await expect.poll(accent).toBe("#F97316");
     await page.emulateMedia({ colorScheme: "light" });

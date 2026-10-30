@@ -11,6 +11,7 @@ export function AuthPage() {
   const [mode, setMode] = useState<AuthMode>("signin");
   const [message, setMessage] = useState("");
   const mutation = useAuthentication();
+
   return (
     <main className="auth-layout">
       <section className="auth-story">
@@ -59,16 +60,25 @@ export function AuthPage() {
             pending={mutation.isPending}
             onSubmit={async (input) => {
               setMessage("");
+
               try {
-                await mutation.mutateAsync({ mode, input });
-                if (mode !== "signin")
+                await mutation.mutateAsync({
+                  mode,
+                  input,
+                });
+
+                if (mode !== "signin") {
+                  const messages: Partial<Record<AuthMode, string>> = {
+                    verify: "Confirmation complete. You can now sign in.",
+                    reset:
+                      "Password reset complete. Sign in with your new password.",
+                  };
+
                   setMessage(
-                    mode === "verify"
-                      ? "Confirmation complete. You can now sign in."
-                      : mode === "reset"
-                        ? "Password reset complete. Sign in with your new password."
-                        : "If this request is eligible, a message is waiting in local Mailpit.",
+                    messages[mode] ??
+                      "If this request is eligible, a message is waiting in local Mailpit.",
                   );
+                }
               } catch {
                 /* The mutation's error state is shown above without raw server text. */
               }

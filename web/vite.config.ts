@@ -9,6 +9,7 @@ import tailwindcss from "@tailwindcss/vite";
 const target = new URL(
   process.env.PLUTO_EXAMPLE_WEB_API_TARGET ?? "http://127.0.0.1:18080",
 );
+
 if (
   target.protocol !== "http:" ||
   target.hostname !== "127.0.0.1" ||
@@ -22,12 +23,17 @@ if (
     "Development API target must be plain HTTP on numeric loopback",
   );
 }
+
 const proxy = Object.fromEntries(
   ["/api", "/auth", "/healthz"].map((path) => [
     path,
-    { target: target.origin, changeOrigin: false },
+    {
+      target: target.origin,
+      changeOrigin: false,
+    },
   ]),
 );
+
 const https = () => ({
   key: readFileSync(new URL("./.cert/key.pem", import.meta.url)),
   cert: readFileSync(new URL("./.cert/cert.pem", import.meta.url)),
@@ -47,9 +53,9 @@ export default defineConfig(({ command, isPreview }) => ({
         handler(html) {
           return command === "serve" && !isPreview
             ? html.replace(
-                "script-src 'self'",
-                `script-src 'self' 'nonce-${nonce}'`,
-              )
+              "script-src 'self'",
+              `script-src 'self' 'nonce-${nonce}'`,
+            )
             : html;
         },
       },

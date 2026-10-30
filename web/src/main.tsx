@@ -8,7 +8,11 @@ import { router } from "./app/router";
 import "./app/styles.css";
 
 const element = document.getElementById("root");
-if (!element) throw new Error("Application root is missing");
+
+if (!element) {
+  throw new Error("Application root is missing");
+}
+
 const client = createQueryClient();
 createRoot(element).render(
   <StrictMode>

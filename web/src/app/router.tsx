@@ -26,6 +26,7 @@ const purchases = createRoute({
       : undefined,
   }),
 });
+
 const detail = createRoute({
   getParentRoute: () => root,
   path: "/purchases/$purchaseId",
@@ -34,6 +35,7 @@ const detail = createRoute({
     "PurchaseDetailPage",
   ),
 });
+
 const members = createRoute({
   getParentRoute: () => root,
   path: "/members",
@@ -43,6 +45,7 @@ const members = createRoute({
   ),
   validateSearch: pageSearch,
 });
+
 const activity = createRoute({
   getParentRoute: () => root,
   path: "/activity",
@@ -52,6 +55,7 @@ const activity = createRoute({
   ),
   validateSearch: pageSearch,
 });
+
 export const router = createRouter({
   routeTree: root.addChildren([purchases, detail, members, activity]),
   defaultPreload: "intent",
@@ -64,6 +68,7 @@ export const router = createRouter({
     </main>
   ),
 });
+
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;

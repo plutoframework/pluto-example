@@ -9,6 +9,7 @@ export const modeLabels: Record<AuthMode, string> = {
   recover: "Recover access",
   reset: "Set a new password",
 };
+
 export function AuthForm({
   mode,
   pending,
@@ -23,50 +24,56 @@ export function AuthForm({
   const fields = [
     ...(hasEmail
       ? [
-          {
-            name: "email",
-            label: "Email address",
-            type: "email",
-            autoComplete: "username",
-            maxLength: 254,
-            minLength: 1,
-          },
-        ]
+        {
+          name: "email",
+          label: "Email address",
+          type: "email",
+          autoComplete: "username",
+          maxLength: 254,
+          minLength: 1,
+        },
+      ]
       : []),
     ...(hasPassword
       ? [
-          {
-            name: "password",
-            label: "Password",
-            type: "password",
-            autoComplete:
+        {
+          name: "password",
+          label: "Password",
+          type: "password",
+          autoComplete:
               mode === "signin" ? "current-password" : "new-password",
-            maxLength: 1024,
-            minLength: mode === "signin" ? 1 : 12,
-          },
-        ]
+          maxLength: 1024,
+          minLength: mode === "signin" ? 1 : 12,
+        },
+      ]
       : []),
     ...(!hasEmail
       ? [
-          {
-            name: "token",
-            label: "Confirmation token",
-            type: "password",
-            autoComplete: "one-time-code",
-            maxLength: 128,
-            minLength: 1,
-          },
-        ]
+        {
+          name: "token",
+          label: "Confirmation token",
+          type: "password",
+          autoComplete: "one-time-code",
+          maxLength: 128,
+          minLength: 1,
+        },
+      ]
       : []),
   ];
+
   return (
     <form
       className="stack"
       onSubmit={async (event) => {
         event.preventDefault();
-        if (pending) return;
+
+        if (pending) {
+          return;
+        }
+
         const form = event.currentTarget;
         const data = new FormData(form);
+
         try {
           await onSubmit({
             email: String(data.get("email") ?? ""),

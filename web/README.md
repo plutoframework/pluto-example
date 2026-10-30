@@ -254,3 +254,19 @@ walkthrough confirms approval through the new dialog. Bounded mutation smoke:
 ```sh
 mise exec -- python3 scripts/frontend-decision-mutation.py
 ```
+
+## Expanded source style
+
+`npm run fmt` is the canonical formatter: it combines the 80-column Prettier
+configuration with the ESLint fixes in `scripts/readability.mjs`. `npm run lint`
+checks that same result without writing. ESLint requires braces, expanded control
+blocks, one statement per line, blank lines around logical phases, and separate
+lines for multiple object/type members. Nested ternaries must be rewritten as
+named values or explicit branches; that semantic refactor is intentionally manual.
+
+The formatter handles TypeScript-specific cases where plain Prettier would
+compact a type again. Avoid running plain Prettier over TS/TSX as the final step;
+use `npm run fmt`, then `npm run lint`. Editor integrations should apply ESLint
+fixes as well. Edit `scripts/readability.mjs` and `.prettierrc.json` to change the
+project's conventions. Generated API/theme artifacts retain their generators'
+format and are type-checked. The 1,000-line ceiling still applies to source.
