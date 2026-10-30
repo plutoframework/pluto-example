@@ -113,16 +113,29 @@ export function PurchaseDetailPage() {
           {command.error && (
             <Notice tone="error">{errorMessage(command.error)}</Notice>
           )}
+          {command.isPending && <p role="status">Submitting your request…</p>}
+          {command.isUncertain && (
+            <Notice tone="error">
+              The request outcome is unknown. Refresh to verify its status
+              before retrying.
+            </Notice>
+          )}
+          {command.refreshError && (
+            <Notice tone="error">
+              The write completed, but current details could not refresh.
+              Refresh this page.
+            </Notice>
+          )}
           <div className="button-row">
             {record.status === "draft" && own && can("purchases:create") && (
               <Button
                 variant="primary"
-                isDisabled={command.isPending}
+                isDisabled={command.isPending || command.isUncertain}
                 onClick={() => {
                   void submit();
                 }}
               >
-                Submit for review ↗
+                {command.isPending ? "Submitting…" : "Submit for review ↗"}
               </Button>
             )}
             {record.status === "submitted" &&

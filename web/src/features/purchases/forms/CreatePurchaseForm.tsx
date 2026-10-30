@@ -18,10 +18,12 @@ export function parseAmount(value: string): number | null {
 
 export function CreatePurchaseForm({
   pending,
+  uncertain = false,
   onSubmit,
   onCancel,
 }: {
   pending: boolean;
+  uncertain?: boolean;
   onSubmit: (input: CreatePurchase) => Promise<void>;
   onCancel: () => void;
 }) {
@@ -32,10 +34,11 @@ export function CreatePurchaseForm({
   return (
     <form
       className="stack"
+      aria-busy={pending}
       onSubmit={async (event) => {
         event.preventDefault();
 
-        if (pending) {
+        if (pending || uncertain) {
           return;
         }
 
@@ -60,13 +63,14 @@ export function CreatePurchaseForm({
         });
       }}
     >
+      {pending && <p role="status">Saving your draft…</p>}
       {error && <Notice tone="error">{error}</Notice>}
       <TextField
         name="title"
         value={title}
         onChange={setTitle}
         isRequired
-        isDisabled={pending}
+        isDisabled={pending || uncertain}
         maxLength={160}
       >
         <Label>What does your team need?</Label>
@@ -81,7 +85,7 @@ export function CreatePurchaseForm({
         value={amount}
         onChange={setAmount}
         isRequired
-        isDisabled={pending}
+        isDisabled={pending || uncertain}
         inputMode="decimal"
       >
         <Label>Estimated cost (USD)</Label>
@@ -91,7 +95,11 @@ export function CreatePurchaseForm({
         </Description>
       </TextField>
       <div className="button-row">
-        <Button variant="primary" isDisabled={pending} type="submit">
+        <Button
+          variant="primary"
+          isDisabled={pending || uncertain}
+          type="submit"
+        >
           {pending ? "Saving…" : "Create draft"}
         </Button>
         <Button variant="outline" type="button" onClick={onCancel}>

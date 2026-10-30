@@ -17,7 +17,12 @@ export function PurchaseDecisionControls({
   };
 
   if (state.status === "submitting") {
-    return <Button isDisabled>Recording decision…</Button>;
+    return (
+      <div aria-busy="true">
+        <Button isDisabled>Recording decision…</Button>
+        <p role="status">Recording your decision…</p>
+      </div>
+    );
   }
 
   if (state.status === "succeeded") {

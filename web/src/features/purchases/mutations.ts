@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useActionMutation } from "@plutoframework/frontend/query";
+import { ApiError } from "@/api/errors";
+import { confirmPurchase } from "./cache";
 import { api, organizationHeaders, writeHeaders } from "@/api/client";
 import { scopeKey } from "@/features/workspace/public";
 import type { Scope } from "@/features/workspace/public";
-import type { CreatePurchase } from "./types";
+import type { CreatePurchase, Purchase } from "./types";
 import { createDecisionFlow } from "./flows/decision";
 
 type Command = {
@@ -26,17 +29,24 @@ type Command = {
 );
 
 export function usePurchaseCommand(scope: Scope) {
-  const client = useQueryClient();
+  const action = useActionMutation<Command, Purchase>({
+    scope: JSON.stringify(scopeKey(scope)),
+    classifyError: (error) =>
+      error instanceof ApiError &&
+      [400, 401, 403, 404, 422, 429].includes(error.status)
+        ? "rejected"
+        : "uncertain",
+    execute: async (command, context) => {
+      const signal = command.signal
+        ? AbortSignal.any([command.signal, context.signal])
+        : context.signal;
 
-  return useMutation({
-    retry: false,
-    mutationFn: async (command: Command) => {
       const header = writeHeaders(scope.organization, command.key);
 
       if (command.action === "create") {
         const { data } = await api.POST("/api/purchases", {
           params: { header },
-          signal: command.signal,
+          signal,
           body: command.input,
         });
 
@@ -56,11 +66,11 @@ export function usePurchaseCommand(scope: Scope) {
         command.action === "submit"
           ? await api.POST("/api/purchases/{purchaseID}/submit", {
             params,
-            signal: command.signal,
+            signal,
           })
           : await api.POST("/api/purchases/{purchaseID}/decision", {
             params,
-            signal: command.signal,
+            signal,
             body: { decision: command.decision },
           });
 
@@ -70,10 +80,47 @@ export function usePurchaseCommand(scope: Scope) {
 
       return data.data;
     },
-    onSettled: async () => {
-      await client.invalidateQueries({ queryKey: scopeKey(scope) });
+    confirm: (purchase, _command, client) => {
+      confirmPurchase(client, scope, purchase);
     },
+    reconcile: (_command, client) =>
+      client.invalidateQueries({ queryKey: scopeKey(scope) }),
   });
+
+  const { run, get } = action;
+  const mutateAsync = useCallback(
+    async (command: Command) => {
+      const resource = command.action === "create" ? "create" : command.id;
+      const accepted = await run(resource, command);
+      const result = get(resource);
+
+      if (!accepted) {
+        throw new Error("This action is pending or needs reconciliation.");
+      }
+
+      if (result?.status !== "succeeded" || !result.output) {
+        throw result?.error ?? new Error("Action cancelled");
+      }
+
+      return result.output;
+    },
+    [run, get],
+  );
+
+  const latest = action.entries.at(-1);
+
+  return {
+    isPending: action.entries.some((entry) => entry.status === "pending"),
+    isUncertain: action.entries.some((entry) => entry.status === "uncertain"),
+    error: latest?.error instanceof Error ? latest.error : null,
+    refreshError: latest?.refreshError !== undefined,
+    reset() {
+      for (const entry of action.entries) {
+        void action.forget(entry.key);
+      }
+    },
+    mutateAsync,
+  };
 }
 
 export function usePurchaseExport(scope: Scope) {

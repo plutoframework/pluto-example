@@ -199,12 +199,30 @@ test("member creates/submits a real request, isolates organizations and logs out
     .getByRole("textbox", { name: /what does your team need/i })
     .fill(title);
   await page.getByRole("textbox", { name: /estimated cost/i }).fill("2425.50");
+  let releaseWrite!: () => void;
+  const writeGate = new Promise<void>((resolve) => {
+    releaseWrite = resolve;
+  });
+
+  await page.route("**/api/purchases", async (route) => {
+    if (route.request().method() === "POST") {
+      await writeGate;
+    }
+
+    await route.continue();
+  });
   await page
     .getByRole("button", {
       name: "Create draft",
       exact: true,
     })
     .click();
+  await expect(page.getByRole("button", { name: "Saving…" })).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText("Saving your draft");
+  await expect(
+    page.getByRole("textbox", { name: /what does your team need/i }),
+  ).toHaveValue(title);
+  releaseWrite();
   await expect(
     page.getByRole("heading", {
       name: title,

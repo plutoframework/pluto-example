@@ -103,6 +103,7 @@ export function PurchaseListPage() {
           can("purchases:create") && (
             <Button
               variant="primary"
+              isDisabled={command.isPending || command.isUncertain}
               onClick={() => {
                 intent.current = null;
                 command.reset();
@@ -269,11 +270,18 @@ export function PurchaseListPage() {
           title="A new purchase request"
           onClose={() => setCreating(false)}
         >
+          {command.isUncertain && (
+            <Notice tone="error">
+              The draft outcome is unknown. Refresh the list to verify before
+              trying again.
+            </Notice>
+          )}
           {command.error && (
             <Notice tone="error">{errorMessage(command.error)}</Notice>
           )}
           <CreatePurchaseForm
             pending={command.isPending}
+            uncertain={command.isUncertain}
             onCancel={() => setCreating(false)}
             onSubmit={async (input) => {
               const signature = JSON.stringify(input);

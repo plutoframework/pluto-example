@@ -117,3 +117,74 @@ test.each(["actor", "session", "organization", "id"] as const)(
     client.clear();
   },
 );
+
+test("confirmed writes complete before a held background refresh and update visible cache", async () => {
+  const { usePurchaseCommand } = await import("./mutations");
+  const { scopeKey } = await import("@/features/workspace/public");
+  const scope = {
+    actor: "a",
+    session: "s",
+    organization: "one",
+  };
+
+  const client = new QueryClient();
+  const record = {
+    id: "purchase",
+    organization_id: "one",
+    status: "submitted",
+    version: 2,
+  };
+
+  let respond!: (value: Response) => void;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          respond = resolve;
+        }),
+    ),
+  );
+  let refresh!: () => void;
+  vi.spyOn(client, "invalidateQueries").mockImplementation(
+    () =>
+      new Promise<void>((resolve) => {
+        refresh = resolve;
+      }),
+  );
+  const key = [...scopeKey(scope), "purchases", ""];
+  client.setQueryData(key, {
+    data: [
+      {
+        ...record,
+        status: "draft",
+        version: 1,
+      },
+    ],
+  });
+  const { result, unmount } = renderHook(() => usePurchaseCommand(scope), {
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+
+  let running!: Promise<unknown>;
+  act(() => {
+    running = result.current.mutateAsync({
+      action: "submit",
+      id: "purchase",
+      key: "business-key",
+    });
+  });
+  expect(result.current.isPending).toBe(true);
+  await waitFor(() => expect(respond).toBeDefined());
+  await act(async () => {
+    respond(Response.json({ data: record }));
+    await running;
+  });
+  expect(result.current.isPending).toBe(false);
+  expect(client.getQueryData(key)).toEqual({ data: [record] });
+  refresh();
+  unmount();
+  client.clear();
+});

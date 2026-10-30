@@ -277,3 +277,19 @@ code below. JavaScript and TypeScript lint/format checks enforce this convention
 including the start of a function or branch. Inline trailing comments are kept
 in place, and next-line compiler/linter directives retain their target. The
 cross-language convention is also recorded in AGENTS.md for future changes.
+
+## Immediate action feedback
+
+Purchases use the published `/query` action helper with pending confirmation.
+Writes show progress immediately, block conflicting resource actions and apply
+confirmed response data to scoped detail/existing list caches before refreshing
+in the background. Creating a draft navigates to its confirmed cached detail
+without waiting for another round trip. Pagination boundaries are preserved.
+A refresh failure is displayed separately from the write's outcome.
+
+Uncertain results stay locked; refresh to establish authoritative state before
+retrying. Stable backend idempotency keys remain owned by the feature. The
+library's explicit optimistic projection policy is available for predictable
+interactions, but this financial approval flow deliberately waits for confirmation.
+Unit tests and the browser walkthrough hold writes open to assert immediate
+feedback; scope, concurrency and rollback behavior are also tested in the library.

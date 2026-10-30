@@ -38,3 +38,29 @@ test("confirmation, cancellation and decline use the real HeroUI controls", asyn
   expect(await screen.findByText(/Decision recorded/)).toBeVisible();
   flow.dispose();
 });
+
+test("decision progress is visible before a held write completes", async () => {
+  let finish!: () => void;
+  const flow = createDecisionFlow(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+
+  render(<PurchaseDecisionControls flow={flow} />);
+  fireEvent.click(screen.getByRole("button", { name: "Approve request" }));
+  await screen.findByRole("dialog");
+  fireEvent.click(screen.getByRole("button", { name: "Confirm approval" }));
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Recording your decision",
+  );
+  expect(
+    screen.getByRole("button", { name: "Recording decision…" }),
+  ).toBeDisabled();
+  await act(async () => {
+    finish();
+  });
+  expect(await screen.findByText(/Decision recorded/)).toBeVisible();
+  flow.dispose();
+});
