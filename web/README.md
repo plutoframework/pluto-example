@@ -226,3 +226,31 @@ The external bootstrap selects light/dark before React mounts and follows OS
 changes for mode="system". It needs no local storage, inline script or weaker
 CSP. Browser assets receive only the theme mode and configured CSS tokens, never
 the full project manifest or backend runtime settings.
+
+## Published frontend state primitives
+
+Purchase approval and decline now import `@plutoframework/frontend` **0.1.1** from
+npm. [The flow](src/features/purchases/flows/decision.ts) defines viewing,
+confirmation, submission, success and failure states. HeroUI controls subscribe
+through the published React adapter; HTTP work still uses the existing feature
+mutation layer and refreshes canonical TanStack Query data after settlement.
+
+Selecting a decision opens a confirmation dialog. Cancellation sends no request;
+duplicate confirmation cannot start a second write. A retry of the same verdict
+retains its business idempotency key while each UI attempt has a separate
+correlation ID. Request IDs do not provide backend idempotency or permission.
+
+Controllers are created in committed integration-hook setup and disposed on
+cleanup. StrictMode receives a fresh controller after replayed setup, and changing
+purchase/account/session/organization fences and aborts old work. Cancellation
+cannot undo a backend commit; refresh the purchase after an uncertain failure.
+The backend remains authoritative for membership, permissions and business state.
+
+Unit tests cover real HeroUI confirmation/cancellation, retries and duplicate
+writes. Hook tests exercise every scope dimension under StrictMode, including
+late responses from a transport that ignores cancellation. The real API/browser
+walkthrough confirms approval through the new dialog. Bounded mutation smoke:
+
+```sh
+mise exec -- python3 scripts/frontend-decision-mutation.py
+```

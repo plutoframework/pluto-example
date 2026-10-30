@@ -8,6 +8,7 @@ import { date, money } from "@/shared/lib/format";
 import { usePurchase } from "../queries";
 import { usePurchaseCommand } from "../mutations";
 import { ReviewPanel } from "./ReviewPanel";
+import { PurchaseDecision } from "./PurchaseDecision";
 import { PurchaseStatus } from "../components/PurchaseStatus";
 
 export function PurchaseDetailPage() {
@@ -21,20 +22,15 @@ export function PurchaseDetailPage() {
     return <Notice tone="error">{errorMessage(query.error)}</Notice>;
   const record = query.data;
   const own = record.creator_id === scope.actor;
-  const act = async (action: "submit" | "approved" | "rejected") => {
-    if (!keys.current.has(action))
-      keys.current.set(action, crypto.randomUUID());
-    const key = keys.current.get(action)!;
+  const submit = async () => {
+    if (!keys.current.has("submit"))
+      keys.current.set("submit", crypto.randomUUID());
     try {
-      if (action === "submit")
-        await command.mutateAsync({ action: "submit", id: record.id, key });
-      else
-        await command.mutateAsync({
-          action: "decide",
-          id: record.id,
-          decision: action,
-          key,
-        });
+      await command.mutateAsync({
+        action: "submit",
+        id: record.id,
+        key: keys.current.get("submit")!,
+      });
     } catch {
       /* Display sanitized error and refresh canonical server state. */
     }
@@ -101,7 +97,7 @@ export function PurchaseDetailPage() {
                 variant="primary"
                 isDisabled={command.isPending}
                 onClick={() => {
-                  void act("submit");
+                  void submit();
                 }}
               >
                 Submit for review ↗
@@ -110,26 +106,11 @@ export function PurchaseDetailPage() {
             {record.status === "submitted" &&
               !own &&
               can("purchases:decide") && (
-                <>
-                  <Button
-                    variant="primary"
-                    isDisabled={command.isPending}
-                    onClick={() => {
-                      void act("approved");
-                    }}
-                  >
-                    Approve request
-                  </Button>
-                  <Button
-                    variant="danger-soft"
-                    isDisabled={command.isPending}
-                    onClick={() => {
-                      void act("rejected");
-                    }}
-                  >
-                    Decline request
-                  </Button>
-                </>
+                <PurchaseDecision
+                  key={`${scope.actor}:${scope.session}:${scope.organization}:${record.id}`}
+                  scope={scope}
+                  id={record.id}
+                />
               )}
           </div>
         </Card>

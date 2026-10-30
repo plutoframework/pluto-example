@@ -208,6 +208,9 @@ test("approver decides another actor's request and reads the real audit trail", 
   await page
     .getByRole("button", { name: "Approve request", exact: true })
     .click();
+  await page
+    .getByRole("button", { name: "Confirm approval", exact: true })
+    .click();
   await expect(page.getByText("Approved", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Activity", exact: true }).click();
   await expect(
