@@ -67,6 +67,15 @@
       "Metadata": {
         "$ref": "./schemas.json#/components/schemas/Metadata"
       },
+      "OIDCAuthorizationData": {
+        "$ref": "./schemas.json#/components/schemas/OIDCAuthorizationData"
+      },
+      "OIDCAuthorizationResponse": {
+        "$ref": "./schemas.json#/components/schemas/OIDCAuthorizationResponse"
+      },
+      "OIDCProviderList": {
+        "$ref": "./schemas.json#/components/schemas/OIDCProviderList"
+      },
       "Organization": {
         "$ref": "./schemas.json#/components/schemas/Organization"
       },
@@ -861,6 +870,15 @@
     },
     "/auth/logout": {
       "$ref": "./auth.json#/paths/~1auth~1logout"
+    },
+    "/auth/oidc/begin": {
+      "$ref": "./auth.json#/paths/~1auth~1oidc~1begin"
+    },
+    "/auth/oidc/callback": {
+      "$ref": "./auth.json#/paths/~1auth~1oidc~1callback"
+    },
+    "/auth/providers": {
+      "$ref": "./auth.json#/paths/~1auth~1providers"
     },
     "/auth/recovery": {
       "$ref": "./auth.json#/paths/~1auth~1recovery"

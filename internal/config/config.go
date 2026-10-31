@@ -15,6 +15,7 @@ import (
 const Prefix = "PLUTO_EXAMPLE_"
 
 type Config struct {
+	OIDC     OIDC
 	Review   ReviewConfig
 	Server   ServerConfig
 	Database DatabaseConfig
@@ -153,6 +154,13 @@ func LoadFrom(lookup Lookup) (Config, error) {
 	}
 
 	if err := config.Validate(); err != nil {
+		return Config{}, err
+	}
+
+	oidcConfig, err := loadOIDC(lookup)
+	config.OIDC = oidcConfig
+
+	if err != nil {
 		return Config{}, err
 	}
 

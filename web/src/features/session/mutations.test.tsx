@@ -1,8 +1,8 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { expect, test, vi, afterEach } from "vitest";
-import { useAuthentication, useSignOut } from "./mutations";
+import { useAuthentication, useSignOut, useProviderSignIn } from "./mutations";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -77,3 +77,33 @@ test("logout clears scoped data after the server revokes the cookie", async () =
   expect(client.getQueriesData({ queryKey: ["scope"] })).toEqual([]);
   client.clear();
 });
+
+for (const target of [
+  "javascript:alert(1)",
+  "http://provider.example/login",
+  "https://user:secret@provider.example/login",
+]) {
+  test(`provider navigation rejects unsafe URL ${new URL(target).protocol}`, async () => {
+    const client = new QueryClient();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (request: Request) => {
+        expect(request.method).toBe("POST");
+        expect(request.headers.get("Accept")).toBe("application/json");
+
+        return Response.json({ data: { authorization_url: target } });
+      }),
+    );
+    const { result } = renderHook(() => useProviderSignIn(), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    });
+
+    await act(async () => {
+      await expect(result.current.mutateAsync()).rejects.toThrow();
+    });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    client.clear();
+  });
+}

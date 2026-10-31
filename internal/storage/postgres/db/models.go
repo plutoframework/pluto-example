@@ -43,12 +43,14 @@ type Organization struct {
 }
 
 type PlutoAuthAccount struct {
-	ID                string
-	Email             string
-	PasswordHash      string
-	CredentialVersion int64
-	Verified          bool
-	Disabled          bool
+	ID                   string
+	Email                string
+	PasswordHash         string
+	CredentialVersion    int64
+	Verified             bool
+	Disabled             bool
+	SecondFactorRequired bool
+	LocalCredentials     bool
 }
 
 type PlutoAuthChallenge struct {
@@ -60,10 +62,27 @@ type PlutoAuthChallenge struct {
 	ExpiresAt         pgtype.Timestamptz
 }
 
+type PlutoAuthExternalIdentity struct {
+	Issuer    string
+	Subject   string
+	AccountID string
+}
+
 type PlutoAuthLocalSession struct {
-	TokenDigest       []byte
-	AccountID         string
-	CredentialVersion int64
+	TokenDigest        []byte
+	AccountID          string
+	CredentialVersion  int64
+	PrimaryMethod      string
+	PrimaryAt          pgtype.Timestamptz
+	SecondFactorMethod string
+	SecondFactorAt     pgtype.Timestamptz
+}
+
+type PlutoAuthOidcTransaction struct {
+	StateDigest    []byte
+	BrowserDigest  []byte
+	EncryptedProof []byte
+	ExpiresAt      pgtype.Timestamptz
 }
 
 type PlutoAuthSession struct {

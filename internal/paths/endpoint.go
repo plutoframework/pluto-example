@@ -25,6 +25,7 @@ type Endpoint struct {
 
 func All() []Endpoint {
 	return []Endpoint{
+		OIDCBegin, OIDCCallback, OIDCProviders,
 		GetOrganization,
 		GetAccess,
 		Enroll,

@@ -310,6 +310,45 @@
         ],
         "type": "object"
       },
+      "OIDCAuthorizationData": {
+        "additionalProperties": false,
+        "properties": {
+          "authorization_url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorization_url"
+        ],
+        "type": "object"
+      },
+      "OIDCAuthorizationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OIDCAuthorizationData"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "OIDCProviderList": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "Organization": {
         "additionalProperties": false,
         "properties": {

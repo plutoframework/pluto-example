@@ -285,6 +285,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/oidc/begin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin OIDC sign-in
+         * @description Trusted-Origin POST; redirects to configured provider with S256 PKCE.
+         */
+        post: operations["oidc.begin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/oidc/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Complete OIDC sign-in
+         * @description One-use browser/state/nonce callback; no automatic business grants.
+         */
+        get: operations["oidc.callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Configured sign-in providers
+         * @description Public provider IDs only; no secrets or endpoint configuration.
+         */
+        get: operations["oidc.providers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/recovery": {
         parameters: {
             query?: never;

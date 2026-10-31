@@ -212,7 +212,19 @@ func newWithLocal(ctx context.Context, settings config.Config,
 		)
 	}
 
+	oidcHandler, err := newOIDC(
+		ctx,
+		settings,
+		store.Pool(),
+		credentials.Sessions(),
+		dependencies.Ingress, dependencies.OIDCHTTPClient,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	authentication := SessionAuthentication{
+		OIDC:        oidcHandler,
 		Credentials: credentialHTTP,
 		Idempotency: idempotent,
 		Resolver:    auth.Sessions{Memberships: store},

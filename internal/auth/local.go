@@ -21,11 +21,13 @@ type AccountDisabler interface {
 // LocalDependencies are supplied by the application, never request input.
 // Production needs a real sender, shared limits and trusted-client ingress.
 type LocalDependencies struct {
-	Sender        password.Sender
-	Limiter       password.AttemptLimiter
-	Ingress       func(http.Handler) http.Handler
-	Policy        password.PasswordPolicy
-	DeliveryError func(context.Context, error)
+	// OIDCHTTPClient is an optional host-owned transport; nil uses bounded defaults.
+	OIDCHTTPClient *http.Client
+	Sender         password.Sender
+	Limiter        password.AttemptLimiter
+	Ingress        func(http.Handler) http.Handler
+	Policy         password.PasswordPolicy
+	DeliveryError  func(context.Context, error)
 }
 
 func NewLocal(ctx context.Context, store password.AccountStore,

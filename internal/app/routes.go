@@ -35,6 +35,7 @@ type ApplicationOperations interface {
 }
 
 type SessionAuthentication struct {
+	OIDC        http.Handler
 	Credentials http.Handler
 	Idempotency *httpidem.Handler
 	Resolver    auth.Authenticator
@@ -102,6 +103,27 @@ func RoutesWithTelemetry(settings config.ServerConfig, logger *slog.Logger,
 				http.StripPrefix("/auth", authentication.Credentials))
 		}
 	}
+
+	if authentication.OIDC != nil {
+		router.Mount(
+			"/auth/oidc",
+			http.StripPrefix("/auth/oidc", authentication.OIDC),
+		)
+	}
+
+	router.Get(
+		paths.OIDCProviders.Path,
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-store")
+
+			providers := []string{}
+			if authentication.OIDC != nil {
+				providers = append(providers, "oidc")
+			}
+
+			pluto.JSON(w, 200, api.OIDCProviderList{Data: providers})
+		},
+	)
 
 	registrar := pluto.NewRegistrar(
 		router,

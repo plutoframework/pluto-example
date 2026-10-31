@@ -1,4 +1,4 @@
-import { queryOptions } from "@tanstack/react-query";
+import { useQuery, queryOptions } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { ApiError } from "@/api/errors";
 
@@ -43,4 +43,21 @@ export function sessionOptions() {
       }
     },
   });
+}
+
+export function providerOptions() {
+  return queryOptions({
+    queryKey: ["auth-providers"],
+    retry: false,
+    staleTime: 60_000,
+    queryFn: async ({ signal }) => {
+      const { data } = await api.GET("/auth/providers", { signal });
+
+      return data?.data ?? [];
+    },
+  });
+}
+
+export function useProviders() {
+  return useQuery(providerOptions());
 }

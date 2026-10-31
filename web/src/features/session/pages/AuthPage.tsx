@@ -1,3 +1,5 @@
+import { useProviderSignIn } from "../mutations";
+import { useProviders } from "../queries";
 import { Button, Card } from "@heroui/react";
 import { useState } from "react";
 import { OrbitMark } from "@/shared/ui/icons";
@@ -5,9 +7,12 @@ import { Notice } from "@/shared/ui/feedback";
 import { errorMessage } from "@/api/errors";
 import { useAuthentication } from "../mutations";
 import { AuthForm, modeLabels } from "../forms/AuthForm";
+import { ProviderSignIn } from "../components/ProviderSignIn";
 import type { AuthMode } from "../types";
 
 export function AuthPage() {
+  const providerSignIn = useProviderSignIn();
+  const providers = useProviders();
   const [mode, setMode] = useState<AuthMode>("signin");
   const [message, setMessage] = useState("");
   const mutation = useAuthentication();
@@ -54,6 +59,16 @@ export function AuthPage() {
             <Notice tone="error">{errorMessage(mutation.error)}</Notice>
           )}
           {message && <Notice tone="success">{message}</Notice>}
+          {mode === "signin" && (
+            <ProviderSignIn
+              redirecting={providerSignIn.isPending || providerSignIn.isSuccess}
+              requestFailed={providerSignIn.isError}
+              onContinue={() => providerSignIn.mutate()}
+              available={providers.data?.includes("oidc") ?? false}
+              pending={providers.isPending}
+              failed={providers.isError}
+            />
+          )}
           <AuthForm
             key={mode}
             mode={mode}

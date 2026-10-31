@@ -446,12 +446,46 @@ No schema migration or frontend contract change is required.
 
 ## Account authentication upgrade
 
-This revision uses Pluto Auth v0.4.0. Account-backed deployments explicitly apply
-`db/migrations/006_authentication.sql` after the existing migrations, before
-running the upgraded application. Constructors perform no DDL. Existing sessions
+This revision uses Auth root/password v0.4.0, PostgreSQL v0.5.0 and optional OIDC
+v0.1.1. Account-backed deployments apply migration 006 if needed, then
+`db/migrations/007_external_accounts.sql` before running the upgraded application. Constructors perform no DDL. Existing sessions
 keep unknown authentication evidence until the next real sign-in; rotation does
 not make them fresh. See [the authentication guide](https://plutoframework.github.io/pluto-site/docs/backend/authentication/).
 
 The library foundation adds account policy, method evidence and freshness guards.
 Native social sign-in, TOTP enrollment and their frontend flows remain next work;
 no factor policy is enabled automatically by this upgrade.
+
+## OIDC / Google sign-in
+
+The example imports published native OIDC modules. Sign-in stays disabled by
+`PLUTO_EXAMPLE_OIDC_ENABLED=false`. Before enabling, apply
+`db/migrations/007_external_accounts.sql` after 001–006 and configure the issuer,
+client ID/secret, exact HTTPS callback and random 32-byte encryption key through
+the secret manager. Do not commit secrets or put them in `pluto.toml`.
+
+For Google, use `https://accounts.google.com` and register the callback at the
+browser's HTTPS origin, such as `https://localhost:5173/auth/oidc/callback` for
+the existing Vite TLS proxy. Preserve the exact trusted Origin and Secure cookies.
+See `.env.example` for setting names, and the
+[native workflow](https://github.com/plutoframework/pluto-auth/blob/main/docs/OIDC.md)
+for provider requirements and deployment boundaries.
+
+The HeroUI sign-in page asks `/auth/providers` for configured IDs, then sends a same-origin API
+POST `/auth/oidc/begin` with `Accept: application/json` and navigates to the
+server-built authorization URL. This preserves trusted Origin under no-referrer. It shows immediate redirect
+feedback and never handles tokens in JavaScript. Provider/nonce/state validation
+and encrypted one-use transactions run on the Go side. Callback success returns
+to the fixed `/` path and the normal session query reloads account identity.
+
+First-use enrollment separately requires `PLUTO_EXAMPLE_OIDC_ALLOW_ENROLLMENT=true`.
+It creates an independent account without a password, email-based merge, tenant
+membership or role. The application owner must provision business membership through trusted
+administration. The synthetic `dev-fixtures` command intentionally accepts only
+verified `example.test` password accounts; it does not bind real OIDC identities. Invitation-only mode denies unknown external identities.
+Accounts requiring a factor fail closed; GitHub OAuth, linking and native MFA
+remain roadmap work. Configure real ingress/shared limits for production.
+
+The full app integration test uses a TLS/RSA local issuer, the actual router and
+PostgreSQL to verify sign-in, session lookup, denied business access, replay and
+disable. No live Google credentials or independent security audit are claimed.

@@ -6,6 +6,7 @@ module = "github.com/plutoframework/pluto-example"
 env_prefix = "PLUTO_EXAMPLE_"
 
 [capabilities]
+oidc = true
 # Deliberate for this purchasing example; a future framework defaults to single.
 tenancy = "multi"
 cache = "memory"

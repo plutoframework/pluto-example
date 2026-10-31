@@ -139,12 +139,34 @@ func main() {
 			operation["parameters"] = parameters
 		}
 
-		responses := map[string]any{
-			strconv.Itoa(endpoint.SuccessStatus): response(
-				"Success",
-				schemas.Reference(endpoint.Response),
-			),
+		var success map[string]any
+		if endpoint.SuccessStatus >= 300 && endpoint.SuccessStatus < 400 {
+			success = map[string]any{
+				"description": "Browser redirect; no JSON success body.",
+				"headers": map[string]any{
+					"Location": map[string]any{
+						"required": true,
+						"schema": map[string]any{
+							"type":   "string",
+							"format": "uri-reference",
+						},
+					},
+				},
+			}
+		} else {
+			success = response("Success", schemas.Reference(endpoint.Response))
 		}
+
+		responses := map[string]any{
+			strconv.Itoa(endpoint.SuccessStatus): success,
+		}
+		if endpoint.ID == "oidc.begin" {
+			responses["200"] = response(
+				"With Accept: application/json, returns the server-built authorization URL.",
+				schemas.Reference(endpoint.Response),
+			)
+		}
+
 		responses["default"] = map[string]any{
 			"$ref": "#/components/responses/Error",
 		}
@@ -155,6 +177,53 @@ func main() {
 				schemas.Reference(api.AuthResult{}),
 			)
 		}
+
+		if strings.HasPrefix(endpoint.ID, "oidc.") {
+			responses["default"] = response(
+				"Opaque authentication error; no credential data.",
+				map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"error": map[string]any{
+							"type": "object",
+							"properties": map[string]any{
+								"code": map[string]any{"type": "string"},
+							},
+							"required": []string{"code"},
+						},
+					},
+					"required": []string{"error"},
+				},
+			)
+		}
+
+		if endpoint.ID == "oidc.begin" {
+			parameters = append(
+				parameters,
+				map[string]any{
+					"name":     "Origin",
+					"in":       "header",
+					"required": true,
+					"schema":   map[string]any{"type": "string"},
+				},
+			)
+		}
+
+		if endpoint.ID == "oidc.callback" {
+			for _, name := range []string{"state", "code"} {
+				parameters = append(
+					parameters,
+					map[string]any{
+						"name":     name,
+						"in":       "query",
+						"required": true,
+						"schema":   map[string]any{"type": "string"},
+					},
+				)
+			}
+		}
+
+		operation["parameters"] = parameters
 
 		operation["responses"] = responses
 		if endpoint.Request != nil {

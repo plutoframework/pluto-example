@@ -78,6 +78,15 @@ export interface components {
             has_more: boolean;
             next_cursor: string;
         };
+        OIDCAuthorizationData: {
+            authorization_url: string;
+        };
+        OIDCAuthorizationResponse: {
+            data: components["schemas"]["OIDCAuthorizationData"];
+        };
+        OIDCProviderList: {
+            data: string[];
+        };
         Organization: {
             id: string;
             name: string;

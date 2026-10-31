@@ -88,7 +88,7 @@ func isolatedStore(t *testing.T) *Store {
 		"migrations/002_auth_sessions.sql",
 		"migrations/003_idempotency.sql",
 		"migrations/004_local_credentials.sql",
-		"migrations/005_jobs.sql", "migrations/006_authentication.sql",
+		"migrations/005_jobs.sql", "migrations/006_authentication.sql", "migrations/007_external_accounts.sql",
 		"fixtures.sql",
 	} {
 		source, err := os.ReadFile(filepath.Join("..", "..", "..", "db", name))
