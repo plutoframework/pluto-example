@@ -18,7 +18,7 @@ A working purchasing app, from draft to independent approval.
 
 ### 1. Get the project
 
-Requires Go **1.25.5+**, Node **24.22.1**, Python 3 and Docker:
+Requires Go **1.26+**, Node **24.22.1**, Python 3 and Docker:
 
 ```sh
 git clone https://github.com/plutoframework/pluto-example.git
