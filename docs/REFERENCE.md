@@ -14,7 +14,7 @@ It uses React/TypeScript, Vite, TanStack Router/Query and generated OpenAPI bind
 
 ## Run the local credential walkthrough
 
-Requires Go 1.25.5+, Python 3 and Docker. This example is explicitly development
+Requires Go 1.26+, Python 3 and Docker. This example is explicitly development
 only: startup requires DEMO_AUTH=true, a numeric loopback listener and PostgreSQL.
 There is no credential memory fallback or startup DDL. Memory repositories remain
 available for isolated business tests.
@@ -214,7 +214,7 @@ go run ./cmd/openapi
 
 sqlc is a pinned development generator, not a runtime dependency. sqlc 1.31.1
 uses a Go 1.26+ toolchain for generation (Go can download it automatically); the
-application continues to target Go 1.25.5+. OpenAPI derives route metadata and concrete JSON model structure from shared Go definitions, with reusable schema references. It does not infer business policies, amount/title constraints, enums, or every runtime validation rule. Errors use a shared default response; status mapping is documented above. It is intentionally a sample generator, not a general schema engine.
+application continues to target Go 1.26+. OpenAPI derives route metadata and concrete JSON model structure from shared Go definitions, with reusable schema references. It does not infer business policies, amount/title constraints, enums, or every runtime validation rule. Errors use a shared default response; status mapping is documented above. It is intentionally a sample generator, not a general schema engine.
 
 The architecture test walks source imports transitively, rejects handler access to database adapters/drivers and business access to HTTP/storage, checks paths do not reach handlers, and enforces a 1,000-line Go source limit including generated code. [check.sh](../scripts/check.sh) runs the non-mutating golangci-lint checks, checks every non-Git project file's line count, runs tests/vet, and verifies OpenAPI freshness. It can be invoked unchanged by a future Git hook or CI job; this example does not install a hook or remote CI workflow. These checks enforce dependency boundaries; they do not semantically prove that handlers contain no business logic.
 
